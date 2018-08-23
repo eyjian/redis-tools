@@ -1,7 +1,9 @@
 #!/bin/bash
 # Writed by yijian on 2018/8/21
 # a tool to deploy a redis cluster
-# 自动化部署redis集群工具
+#
+# 自动化部署redis集群工具，
+# 远程操作即可，不需登录到Redis集群中的任何机器。
 #
 # 运行参数：
 # 参数1 SSH端口
