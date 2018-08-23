@@ -66,6 +66,10 @@ REDIS_CLI=$BASEDIR/redis-cli
 REDIS_CHECK_AOF=$BASEDIR/redis-check-aof
 # redis-check-rdb
 REDIS_CHECK_RDB=$BASEDIR/redis-check-rdb
+# redis.conf
+REDIS_CONF=$BASEDIR/redis.conf
+# redis-PORT.conf
+REDIS_PORT_CONF=$BASEDIR/redis-PORT.conf
 
 # 用法
 function usage()
@@ -161,6 +165,24 @@ if test $? -eq 0; then
     echo -e "Checking $REDIS_CHECK_RDB OK"
 else
     echo -e "$REDIS_CHECK_RDB \033[0;32;31mnot exists or not executable\033[m"
+    echo ""
+    exit 1
+fi
+
+# 检查redis.conf是否可用
+if test ! -r "$REDIS_CONF"; then
+    echo -e "Checking $REDIS_CONF OK"
+else
+    echo -e "$REDIS_CONF \033[0;32;31mnot exists or not readable\033[m"
+    echo ""
+    exit 1
+fi
+
+# 检查redis-PORT.conf是否可用
+if test ! -r "$REDIS_PORT_CONF"; then
+    echo -e "Checking $REDIS_PORT_CONF OK"
+else
+    echo -e "$REDIS_PORT_CONF \033[0;32;31mnot exists or not readable\033[m"
     echo ""
     exit 1
 fi
