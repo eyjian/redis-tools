@@ -1,0 +1,1343 @@
+[zhangsan@mooon ~/redis-tools/deploy]$ ls
+deploy_redis_cluster.sh  README.txt       redis-3.3.3.gem  redis-check-aof  redis-cli            redis.conf       redis-server
+dumpfile                 redis-3.0.0.gem  redis-4.0.1.gem  redis-check-rdb  redis_cluster.nodes  redis-PORT.conf  redis-trib.rb
+
+[zhangsan@mooon ~/redis-tools/deploy]$ grep REDISPORT redis*.conf
+redis-PORT.conf:port REDISPORT
+redis-PORT.conf:pidfile INSTALLDIR/bin/redis_REDISPORT.pid
+redis-PORT.conf:logfile INSTALLDIR/log/redis-REDISPORT.log
+redis-PORT.conf:dbfilename dump-REDISPORT.rdb
+redis-PORT.conf:dir INSTALLDIR/data/REDISPORT
+redis-PORT.conf:appendfilename appendonly-REDISPORT.aof
+redis-PORT.conf:cluster-config-file nodes-REDISPORT.conf
+
+[zhangsan@mooon ~/redis-tools/deploy]$ grep INSTALLDIR redis*.conf
+redis-PORT.conf:include INSTALLDIR/conf/redis.conf
+redis-PORT.conf:pidfile INSTALLDIR/bin/redis_REDISPORT.pid
+redis-PORT.conf:logfile INSTALLDIR/log/redis-REDISPORT.log
+redis-PORT.conf:dir INSTALLDIR/data/REDISPORT
+
+[zhangsan@mooon ~/redis-tools/deploy]$ cat redis_cluster.nodes 
+192.168.0.101:6379
+192.168.0.102:6379
+192.168.0.103:6379
+192.168.0.104:6379
+192.168.0.105:6379
+192.168.0.106:6379
+192.168.0.107:6379
+192.168.0.108:6379
+192.168.0.109:6379
+192.168.0.101:6380
+192.168.0.102:6380
+192.168.0.103:6380
+192.168.0.104:6380
+192.168.0.105:6380
+192.168.0.106:6380
+192.168.0.107:6380
+192.168.0.108:6380
+192.168.0.109:6380
+
+[zhangsan@mooon ~/redis-tools/deploy]$ ./deploy_redis_cluster.sh 22 redis 'redis^1234' /usr/local/redis-4.0.11
+[ssh port] 22
+[install user] redis
+[install directory] /usr/local/redis-4.0.11
+
+Checking ruby OK
+Checking gem OK
+Checking mooon_ssh OK
+Checking mooon_upload OK
+Checking /home/zhangsan/redis-tools/deploy/redis-trib.rb OK
+Checking /home/zhangsan/redis-tools/deploy/redis-server OK
+Checking /home/zhangsan/redis-tools/deploy/redis-cli OK
+Checking /home/zhangsan/redis-tools/deploy/redis-check-aof OK
+Checking /home/zhangsan/redis-tools/deploy/redis-check-rdb OK
+Checking /home/zhangsan/redis-tools/deploy/redis.conf OK
+Checking /home/zhangsan/redis-tools/deploy/redis-PORT.conf OK
+Checking /home/zhangsan/redis-tools/deploy/redis_cluster.nodes OK
+
+Are you sure? [yes/no] yes
+Starting to install ...
+
+Clear install directory? [yes/no] yes
+
+================================
+[192.168.0.106] Installing common ...
+mooon_ssh -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -c="test -d /usr/local/redis-4.0.11 && test -r /usr/local/redis-4.0.11 && test -w /usr/local/redis-4.0.11 && test -x /usr/local/redis-4.0.11"
+[192.168.0.106]
+[192.168.0.106] SUCCESS
+
+
+================================
+[192.168.0.106 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -c="killall -q -w -u redis redis-server"
+[192.168.0.106]
+command return 1
+
+
+================================
+[192.168.0.106 FAILURE] 0 seconds
+SUCCESS: 0, FAILURE: 1
+mooon_ssh -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -c="rm -fr /usr/local/redis-4.0.11/*"
+[192.168.0.106]
+[192.168.0.106] SUCCESS
+
+
+================================
+[192.168.0.106 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p bin conf log data"
+[192.168.0.106]
+[192.168.0.106] SUCCESS
+
+
+================================
+[192.168.0.106 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -s=redis.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.106]
+[192.168.0.106] SUCCESS: 59295 bytes (redis.conf)
+
+
+================================
+[192.168.0.106 SUCCESS] 0 seconds (redis.conf)
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=/usr/local/redis-4.0.11/bin
+[192.168.0.106]
+[192.168.0.106] SUCCESS: 5775666 bytes (redis-server)
+
+[192.168.0.106]
+[192.168.0.106] SUCCESS: 2617471 bytes (redis-cli)
+
+[192.168.0.106]
+[192.168.0.106] SUCCESS: 5775666 bytes (redis-check-aof)
+
+[192.168.0.106]
+[192.168.0.106] SUCCESS: 5775666 bytes (redis-check-rdb)
+
+[192.168.0.106]
+[192.168.0.106] SUCCESS: 65991 bytes (redis-trib.rb)
+
+
+================================
+[192.168.0.106 SUCCESS] 1 seconds (redis-server)
+[192.168.0.106 SUCCESS] 0 seconds (redis-cli)
+[192.168.0.106 SUCCESS] 1 seconds (redis-check-aof)
+[192.168.0.106 SUCCESS] 1 seconds (redis-check-rdb)
+[192.168.0.106 SUCCESS] 0 seconds (redis-trib.rb)
+SUCCESS: 5, FAILURE: 0
+[192.168.0.101] Installing common ...
+mooon_ssh -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -c="test -d /usr/local/redis-4.0.11 && test -r /usr/local/redis-4.0.11 && test -w /usr/local/redis-4.0.11 && test -x /usr/local/redis-4.0.11"
+[192.168.0.101]
+[192.168.0.101] SUCCESS
+
+
+================================
+[192.168.0.101 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -c="killall -q -w -u redis redis-server"
+[192.168.0.101]
+command return 1
+
+
+================================
+[192.168.0.101 FAILURE] 0 seconds
+SUCCESS: 0, FAILURE: 1
+mooon_ssh -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -c="rm -fr /usr/local/redis-4.0.11/*"
+[192.168.0.101]
+[192.168.0.101] SUCCESS
+
+
+================================
+[192.168.0.101 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p bin conf log data"
+[192.168.0.101]
+[192.168.0.101] SUCCESS
+
+
+================================
+[192.168.0.101 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -s=redis.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.101]
+[192.168.0.101] SUCCESS: 59295 bytes (redis.conf)
+
+
+================================
+[192.168.0.101 SUCCESS] 0 seconds (redis.conf)
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=/usr/local/redis-4.0.11/bin
+[192.168.0.101]
+[192.168.0.101] SUCCESS: 5775666 bytes (redis-server)
+
+[192.168.0.101]
+[192.168.0.101] SUCCESS: 2617471 bytes (redis-cli)
+
+[192.168.0.101]
+[192.168.0.101] SUCCESS: 5775666 bytes (redis-check-aof)
+
+[192.168.0.101]
+[192.168.0.101] SUCCESS: 5775666 bytes (redis-check-rdb)
+
+[192.168.0.101]
+[192.168.0.101] SUCCESS: 65991 bytes (redis-trib.rb)
+
+
+================================
+[192.168.0.101 SUCCESS] 1 seconds (redis-server)
+[192.168.0.101 SUCCESS] 1 seconds (redis-cli)
+[192.168.0.101 SUCCESS] 1 seconds (redis-check-aof)
+[192.168.0.101 SUCCESS] 1 seconds (redis-check-rdb)
+[192.168.0.101 SUCCESS] 0 seconds (redis-trib.rb)
+SUCCESS: 5, FAILURE: 0
+[192.168.0.104] Installing common ...
+mooon_ssh -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -c="test -d /usr/local/redis-4.0.11 && test -r /usr/local/redis-4.0.11 && test -w /usr/local/redis-4.0.11 && test -x /usr/local/redis-4.0.11"
+[192.168.0.104]
+[192.168.0.104] SUCCESS
+
+
+================================
+[192.168.0.104 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -c="killall -q -w -u redis redis-server"
+[192.168.0.104]
+command return 1
+
+
+================================
+[192.168.0.104 FAILURE] 0 seconds
+SUCCESS: 0, FAILURE: 1
+mooon_ssh -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -c="rm -fr /usr/local/redis-4.0.11/*"
+[192.168.0.104]
+[192.168.0.104] SUCCESS
+
+
+================================
+[192.168.0.104 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p bin conf log data"
+[192.168.0.104]
+[192.168.0.104] SUCCESS
+
+
+================================
+[192.168.0.104 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -s=redis.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.104]
+[192.168.0.104] SUCCESS: 59295 bytes (redis.conf)
+
+
+================================
+[192.168.0.104 SUCCESS] 0 seconds (redis.conf)
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=/usr/local/redis-4.0.11/bin
+[192.168.0.104]
+[192.168.0.104] SUCCESS: 5775666 bytes (redis-server)
+
+[192.168.0.104]
+[192.168.0.104] SUCCESS: 2617471 bytes (redis-cli)
+
+[192.168.0.104]
+[192.168.0.104] SUCCESS: 5775666 bytes (redis-check-aof)
+
+[192.168.0.104]
+[192.168.0.104] SUCCESS: 5775666 bytes (redis-check-rdb)
+
+[192.168.0.104]
+[192.168.0.104] SUCCESS: 65991 bytes (redis-trib.rb)
+
+
+================================
+[192.168.0.104 SUCCESS] 1 seconds (redis-server)
+[192.168.0.104 SUCCESS] 1 seconds (redis-cli)
+[192.168.0.104 SUCCESS] 1 seconds (redis-check-aof)
+[192.168.0.104 SUCCESS] 1 seconds (redis-check-rdb)
+[192.168.0.104 SUCCESS] 0 seconds (redis-trib.rb)
+SUCCESS: 5, FAILURE: 0
+[192.168.0.103] Installing common ...
+mooon_ssh -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -c="test -d /usr/local/redis-4.0.11 && test -r /usr/local/redis-4.0.11 && test -w /usr/local/redis-4.0.11 && test -x /usr/local/redis-4.0.11"
+[192.168.0.103]
+[192.168.0.103] SUCCESS
+
+
+================================
+[192.168.0.103 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -c="killall -q -w -u redis redis-server"
+[192.168.0.103]
+command return 1
+
+
+================================
+[192.168.0.103 FAILURE] 0 seconds
+SUCCESS: 0, FAILURE: 1
+mooon_ssh -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -c="rm -fr /usr/local/redis-4.0.11/*"
+[192.168.0.103]
+[192.168.0.103] SUCCESS
+
+
+================================
+[192.168.0.103 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p bin conf log data"
+[192.168.0.103]
+[192.168.0.103] SUCCESS
+
+
+================================
+[192.168.0.103 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -s=redis.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.103]
+[192.168.0.103] SUCCESS: 59295 bytes (redis.conf)
+
+
+================================
+[192.168.0.103 SUCCESS] 0 seconds (redis.conf)
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=/usr/local/redis-4.0.11/bin
+[192.168.0.103]
+[192.168.0.103] SUCCESS: 5775666 bytes (redis-server)
+
+[192.168.0.103]
+[192.168.0.103] SUCCESS: 2617471 bytes (redis-cli)
+
+[192.168.0.103]
+[192.168.0.103] SUCCESS: 5775666 bytes (redis-check-aof)
+
+[192.168.0.103]
+[192.168.0.103] SUCCESS: 5775666 bytes (redis-check-rdb)
+
+[192.168.0.103]
+[192.168.0.103] SUCCESS: 65991 bytes (redis-trib.rb)
+
+
+================================
+[192.168.0.103 SUCCESS] 1 seconds (redis-server)
+[192.168.0.103 SUCCESS] 1 seconds (redis-cli)
+[192.168.0.103 SUCCESS] 1 seconds (redis-check-aof)
+[192.168.0.103 SUCCESS] 1 seconds (redis-check-rdb)
+[192.168.0.103 SUCCESS] 0 seconds (redis-trib.rb)
+SUCCESS: 5, FAILURE: 0
+[192.168.0.102] Installing common ...
+mooon_ssh -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -c="test -d /usr/local/redis-4.0.11 && test -r /usr/local/redis-4.0.11 && test -w /usr/local/redis-4.0.11 && test -x /usr/local/redis-4.0.11"
+[192.168.0.102]
+[192.168.0.102] SUCCESS
+
+
+================================
+[192.168.0.102 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -c="killall -q -w -u redis redis-server"
+[192.168.0.102]
+command return 1
+
+
+================================
+[192.168.0.102 FAILURE] 0 seconds
+SUCCESS: 0, FAILURE: 1
+mooon_ssh -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -c="rm -fr /usr/local/redis-4.0.11/*"
+[192.168.0.102]
+[192.168.0.102] SUCCESS
+
+
+================================
+[192.168.0.102 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p bin conf log data"
+[192.168.0.102]
+[192.168.0.102] SUCCESS
+
+
+================================
+[192.168.0.102 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -s=redis.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.102]
+[192.168.0.102] SUCCESS: 59295 bytes (redis.conf)
+
+
+================================
+[192.168.0.102 SUCCESS] 0 seconds (redis.conf)
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=/usr/local/redis-4.0.11/bin
+[192.168.0.102]
+[192.168.0.102] SUCCESS: 5775666 bytes (redis-server)
+
+[192.168.0.102]
+[192.168.0.102] SUCCESS: 2617471 bytes (redis-cli)
+
+[192.168.0.102]
+[192.168.0.102] SUCCESS: 5775666 bytes (redis-check-aof)
+
+[192.168.0.102]
+[192.168.0.102] SUCCESS: 5775666 bytes (redis-check-rdb)
+
+[192.168.0.102]
+[192.168.0.102] SUCCESS: 65991 bytes (redis-trib.rb)
+
+
+================================
+[192.168.0.102 SUCCESS] 1 seconds (redis-server)
+[192.168.0.102 SUCCESS] 1 seconds (redis-cli)
+[192.168.0.102 SUCCESS] 1 seconds (redis-check-aof)
+[192.168.0.102 SUCCESS] 1 seconds (redis-check-rdb)
+[192.168.0.102 SUCCESS] 0 seconds (redis-trib.rb)
+SUCCESS: 5, FAILURE: 0
+[192.168.0.107] Installing common ...
+mooon_ssh -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -c="test -d /usr/local/redis-4.0.11 && test -r /usr/local/redis-4.0.11 && test -w /usr/local/redis-4.0.11 && test -x /usr/local/redis-4.0.11"
+[192.168.0.107]
+[192.168.0.107] SUCCESS
+
+
+================================
+[192.168.0.107 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -c="killall -q -w -u redis redis-server"
+[192.168.0.107]
+command return 1
+
+
+================================
+[192.168.0.107 FAILURE] 0 seconds
+SUCCESS: 0, FAILURE: 1
+mooon_ssh -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -c="rm -fr /usr/local/redis-4.0.11/*"
+[192.168.0.107]
+[192.168.0.107] SUCCESS
+
+
+================================
+[192.168.0.107 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p bin conf log data"
+[192.168.0.107]
+[192.168.0.107] SUCCESS
+
+
+================================
+[192.168.0.107 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -s=redis.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.107]
+[192.168.0.107] SUCCESS: 59295 bytes (redis.conf)
+
+
+================================
+[192.168.0.107 SUCCESS] 0 seconds (redis.conf)
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=/usr/local/redis-4.0.11/bin
+[192.168.0.107]
+[192.168.0.107] SUCCESS: 5775666 bytes (redis-server)
+
+[192.168.0.107]
+[192.168.0.107] SUCCESS: 2617471 bytes (redis-cli)
+
+[192.168.0.107]
+[192.168.0.107] SUCCESS: 5775666 bytes (redis-check-aof)
+
+[192.168.0.107]
+[192.168.0.107] SUCCESS: 5775666 bytes (redis-check-rdb)
+
+[192.168.0.107]
+[192.168.0.107] SUCCESS: 65991 bytes (redis-trib.rb)
+
+
+================================
+[192.168.0.107 SUCCESS] 1 seconds (redis-server)
+[192.168.0.107 SUCCESS] 1 seconds (redis-cli)
+[192.168.0.107 SUCCESS] 1 seconds (redis-check-aof)
+[192.168.0.107 SUCCESS] 1 seconds (redis-check-rdb)
+[192.168.0.107 SUCCESS] 0 seconds (redis-trib.rb)
+SUCCESS: 5, FAILURE: 0
+[192.168.0.108] Installing common ...
+mooon_ssh -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -c="test -d /usr/local/redis-4.0.11 && test -r /usr/local/redis-4.0.11 && test -w /usr/local/redis-4.0.11 && test -x /usr/local/redis-4.0.11"
+[192.168.0.108]
+[192.168.0.108] SUCCESS
+
+
+================================
+[192.168.0.108 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -c="killall -q -w -u redis redis-server"
+[192.168.0.108]
+command return 1
+
+
+================================
+[192.168.0.108 FAILURE] 0 seconds
+SUCCESS: 0, FAILURE: 1
+mooon_ssh -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -c="rm -fr /usr/local/redis-4.0.11/*"
+[192.168.0.108]
+[192.168.0.108] SUCCESS
+
+
+================================
+[192.168.0.108 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p bin conf log data"
+[192.168.0.108]
+[192.168.0.108] SUCCESS
+
+
+================================
+[192.168.0.108 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -s=redis.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.108]
+[192.168.0.108] SUCCESS: 59295 bytes (redis.conf)
+
+
+================================
+[192.168.0.108 SUCCESS] 0 seconds (redis.conf)
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=/usr/local/redis-4.0.11/bin
+[192.168.0.108]
+[192.168.0.108] SUCCESS: 5775666 bytes (redis-server)
+
+[192.168.0.108]
+[192.168.0.108] SUCCESS: 2617471 bytes (redis-cli)
+
+[192.168.0.108]
+[192.168.0.108] SUCCESS: 5775666 bytes (redis-check-aof)
+
+[192.168.0.108]
+[192.168.0.108] SUCCESS: 5775666 bytes (redis-check-rdb)
+
+[192.168.0.108]
+[192.168.0.108] SUCCESS: 65991 bytes (redis-trib.rb)
+
+
+================================
+[192.168.0.108 SUCCESS] 1 seconds (redis-server)
+[192.168.0.108 SUCCESS] 1 seconds (redis-cli)
+[192.168.0.108 SUCCESS] 1 seconds (redis-check-aof)
+[192.168.0.108 SUCCESS] 1 seconds (redis-check-rdb)
+[192.168.0.108 SUCCESS] 0 seconds (redis-trib.rb)
+SUCCESS: 5, FAILURE: 0
+[192.168.0.105] Installing common ...
+mooon_ssh -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -c="test -d /usr/local/redis-4.0.11 && test -r /usr/local/redis-4.0.11 && test -w /usr/local/redis-4.0.11 && test -x /usr/local/redis-4.0.11"
+[192.168.0.105]
+[192.168.0.105] SUCCESS
+
+
+================================
+[192.168.0.105 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -c="killall -q -w -u redis redis-server"
+[192.168.0.105]
+command return 1
+
+
+================================
+[192.168.0.105 FAILURE] 0 seconds
+SUCCESS: 0, FAILURE: 1
+mooon_ssh -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -c="rm -fr /usr/local/redis-4.0.11/*"
+[192.168.0.105]
+[192.168.0.105] SUCCESS
+
+
+================================
+[192.168.0.105 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p bin conf log data"
+[192.168.0.105]
+[192.168.0.105] SUCCESS
+
+
+================================
+[192.168.0.105 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -s=redis.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.105]
+[192.168.0.105] SUCCESS: 59295 bytes (redis.conf)
+
+
+================================
+[192.168.0.105 SUCCESS] 0 seconds (redis.conf)
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=/usr/local/redis-4.0.11/bin
+[192.168.0.105]
+[192.168.0.105] SUCCESS: 5775666 bytes (redis-server)
+
+[192.168.0.105]
+[192.168.0.105] SUCCESS: 2617471 bytes (redis-cli)
+
+[192.168.0.105]
+[192.168.0.105] SUCCESS: 5775666 bytes (redis-check-aof)
+
+[192.168.0.105]
+[192.168.0.105] SUCCESS: 5775666 bytes (redis-check-rdb)
+
+[192.168.0.105]
+[192.168.0.105] SUCCESS: 65991 bytes (redis-trib.rb)
+
+
+================================
+[192.168.0.105 SUCCESS] 1 seconds (redis-server)
+[192.168.0.105 SUCCESS] 1 seconds (redis-cli)
+[192.168.0.105 SUCCESS] 1 seconds (redis-check-aof)
+[192.168.0.105 SUCCESS] 1 seconds (redis-check-rdb)
+[192.168.0.105 SUCCESS] 0 seconds (redis-trib.rb)
+SUCCESS: 5, FAILURE: 0
+[192.168.0.109] Installing common ...
+mooon_ssh -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -c="test -d /usr/local/redis-4.0.11 && test -r /usr/local/redis-4.0.11 && test -w /usr/local/redis-4.0.11 && test -x /usr/local/redis-4.0.11"
+[192.168.0.109]
+[192.168.0.109] SUCCESS
+
+
+================================
+[192.168.0.109 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -c="killall -q -w -u redis redis-server"
+[192.168.0.109]
+command return 1
+
+
+================================
+[192.168.0.109 FAILURE] 0 seconds
+SUCCESS: 0, FAILURE: 1
+mooon_ssh -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -c="rm -fr /usr/local/redis-4.0.11/*"
+[192.168.0.109]
+[192.168.0.109] SUCCESS
+
+
+================================
+[192.168.0.109 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_ssh -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p bin conf log data"
+[192.168.0.109]
+[192.168.0.109] SUCCESS
+
+
+================================
+[192.168.0.109 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -s=redis.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.109]
+[192.168.0.109] SUCCESS: 59295 bytes (redis.conf)
+
+
+================================
+[192.168.0.109 SUCCESS] 0 seconds (redis.conf)
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=/usr/local/redis-4.0.11/bin
+[192.168.0.109]
+[192.168.0.109] SUCCESS: 5775666 bytes (redis-server)
+
+[192.168.0.109]
+[192.168.0.109] SUCCESS: 2617471 bytes (redis-cli)
+
+[192.168.0.109]
+[192.168.0.109] SUCCESS: 5775666 bytes (redis-check-aof)
+
+[192.168.0.109]
+[192.168.0.109] SUCCESS: 5775666 bytes (redis-check-rdb)
+
+[192.168.0.109]
+[192.168.0.109] SUCCESS: 65991 bytes (redis-trib.rb)
+
+
+================================
+[192.168.0.109 SUCCESS] 1 seconds (redis-server)
+[192.168.0.109 SUCCESS] 1 seconds (redis-cli)
+[192.168.0.109 SUCCESS] 1 seconds (redis-check-aof)
+[192.168.0.109 SUCCESS] 1 seconds (redis-check-rdb)
+[192.168.0.109 SUCCESS] 0 seconds (redis-trib.rb)
+SUCCESS: 5, FAILURE: 0
+
+================================
+[192.168.0.106:6379] Installing node ...
+
+mooon_ssh -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6379"
+[192.168.0.106]
+[192.168.0.106] SUCCESS
+
+
+================================
+[192.168.0.106 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -s=redis-6379.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.106]
+[192.168.0.106] SUCCESS: 59018 bytes (redis-6379.conf)
+
+
+================================
+[192.168.0.106 SUCCESS] 0 seconds (redis-6379.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.106:6380] Installing node ...
+
+mooon_ssh -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6380"
+[192.168.0.106]
+[192.168.0.106] SUCCESS
+
+
+================================
+[192.168.0.106 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -s=redis-6380.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.106]
+[192.168.0.106] SUCCESS: 59018 bytes (redis-6380.conf)
+
+
+================================
+[192.168.0.106 SUCCESS] 0 seconds (redis-6380.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.101:6379] Installing node ...
+
+mooon_ssh -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6379"
+[192.168.0.101]
+[192.168.0.101] SUCCESS
+
+
+================================
+[192.168.0.101 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -s=redis-6379.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.101]
+[192.168.0.101] SUCCESS: 59018 bytes (redis-6379.conf)
+
+
+================================
+[192.168.0.101 SUCCESS] 0 seconds (redis-6379.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.101:6380] Installing node ...
+
+mooon_ssh -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6380"
+[192.168.0.101]
+[192.168.0.101] SUCCESS
+
+
+================================
+[192.168.0.101 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -s=redis-6380.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.101]
+[192.168.0.101] SUCCESS: 59018 bytes (redis-6380.conf)
+
+
+================================
+[192.168.0.101 SUCCESS] 0 seconds (redis-6380.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.104:6379] Installing node ...
+
+mooon_ssh -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6379"
+[192.168.0.104]
+[192.168.0.104] SUCCESS
+
+
+================================
+[192.168.0.104 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -s=redis-6379.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.104]
+[192.168.0.104] SUCCESS: 59018 bytes (redis-6379.conf)
+
+
+================================
+[192.168.0.104 SUCCESS] 0 seconds (redis-6379.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.104:6380] Installing node ...
+
+mooon_ssh -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6380"
+[192.168.0.104]
+[192.168.0.104] SUCCESS
+
+
+================================
+[192.168.0.104 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -s=redis-6380.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.104]
+[192.168.0.104] SUCCESS: 59018 bytes (redis-6380.conf)
+
+
+================================
+[192.168.0.104 SUCCESS] 0 seconds (redis-6380.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.103:6379] Installing node ...
+
+mooon_ssh -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6379"
+[192.168.0.103]
+[192.168.0.103] SUCCESS
+
+
+================================
+[192.168.0.103 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -s=redis-6379.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.103]
+[192.168.0.103] SUCCESS: 59018 bytes (redis-6379.conf)
+
+
+================================
+[192.168.0.103 SUCCESS] 0 seconds (redis-6379.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.103:6380] Installing node ...
+
+mooon_ssh -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6380"
+[192.168.0.103]
+[192.168.0.103] SUCCESS
+
+
+================================
+[192.168.0.103 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -s=redis-6380.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.103]
+[192.168.0.103] SUCCESS: 59018 bytes (redis-6380.conf)
+
+
+================================
+[192.168.0.103 SUCCESS] 0 seconds (redis-6380.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.102:6379] Installing node ...
+
+mooon_ssh -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6379"
+[192.168.0.102]
+[192.168.0.102] SUCCESS
+
+
+================================
+[192.168.0.102 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -s=redis-6379.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.102]
+[192.168.0.102] SUCCESS: 59018 bytes (redis-6379.conf)
+
+
+================================
+[192.168.0.102 SUCCESS] 0 seconds (redis-6379.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.102:6380] Installing node ...
+
+mooon_ssh -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6380"
+[192.168.0.102]
+[192.168.0.102] SUCCESS
+
+
+================================
+[192.168.0.102 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -s=redis-6380.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.102]
+[192.168.0.102] SUCCESS: 59018 bytes (redis-6380.conf)
+
+
+================================
+[192.168.0.102 SUCCESS] 0 seconds (redis-6380.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.107:6379] Installing node ...
+
+mooon_ssh -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6379"
+[192.168.0.107]
+[192.168.0.107] SUCCESS
+
+
+================================
+[192.168.0.107 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -s=redis-6379.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.107]
+[192.168.0.107] SUCCESS: 59018 bytes (redis-6379.conf)
+
+
+================================
+[192.168.0.107 SUCCESS] 0 seconds (redis-6379.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.107:6380] Installing node ...
+
+mooon_ssh -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6380"
+[192.168.0.107]
+[192.168.0.107] SUCCESS
+
+
+================================
+[192.168.0.107 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -s=redis-6380.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.107]
+[192.168.0.107] SUCCESS: 59018 bytes (redis-6380.conf)
+
+
+================================
+[192.168.0.107 SUCCESS] 0 seconds (redis-6380.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.108:6379] Installing node ...
+
+mooon_ssh -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6379"
+[192.168.0.108]
+[192.168.0.108] SUCCESS
+
+
+================================
+[192.168.0.108 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -s=redis-6379.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.108]
+[192.168.0.108] SUCCESS: 59018 bytes (redis-6379.conf)
+
+
+================================
+[192.168.0.108 SUCCESS] 0 seconds (redis-6379.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.108:6380] Installing node ...
+
+mooon_ssh -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6380"
+[192.168.0.108]
+[192.168.0.108] SUCCESS
+
+
+================================
+[192.168.0.108 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -s=redis-6380.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.108]
+[192.168.0.108] SUCCESS: 59018 bytes (redis-6380.conf)
+
+
+================================
+[192.168.0.108 SUCCESS] 0 seconds (redis-6380.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.105:6379] Installing node ...
+
+mooon_ssh -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6379"
+[192.168.0.105]
+[192.168.0.105] SUCCESS
+
+
+================================
+[192.168.0.105 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -s=redis-6379.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.105]
+[192.168.0.105] SUCCESS: 59018 bytes (redis-6379.conf)
+
+
+================================
+[192.168.0.105 SUCCESS] 0 seconds (redis-6379.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.105:6380] Installing node ...
+
+mooon_ssh -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6380"
+[192.168.0.105]
+[192.168.0.105] SUCCESS
+
+
+================================
+[192.168.0.105 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -s=redis-6380.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.105]
+[192.168.0.105] SUCCESS: 59018 bytes (redis-6380.conf)
+
+
+================================
+[192.168.0.105 SUCCESS] 0 seconds (redis-6380.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.109:6379] Installing node ...
+
+mooon_ssh -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6379"
+[192.168.0.109]
+[192.168.0.109] SUCCESS
+
+
+================================
+[192.168.0.109 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -s=redis-6379.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.109]
+[192.168.0.109] SUCCESS: 59018 bytes (redis-6379.conf)
+
+
+================================
+[192.168.0.109 SUCCESS] 0 seconds (redis-6379.conf)
+SUCCESS: 1, FAILURE: 0
+[192.168.0.109:6380] Installing node ...
+
+mooon_ssh -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -c="cd /usr/local/redis-4.0.11;mkdir -p data/6380"
+[192.168.0.109]
+[192.168.0.109] SUCCESS
+
+
+================================
+[192.168.0.109 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+mooon_upload -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -s=redis-6380.conf -d=/usr/local/redis-4.0.11/conf
+[192.168.0.109]
+[192.168.0.109] SUCCESS: 59018 bytes (redis-6380.conf)
+
+
+================================
+[192.168.0.109 SUCCESS] 0 seconds (redis-6380.conf)
+SUCCESS: 1, FAILURE: 0
+
+================================
+Start redis? [yes/no] yes
+Starting to start redis ...
+
+[192.168.0.106:6379] Starting node ...
+
+mooon_ssh -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6379.conf"
+[192.168.0.106]
+[192.168.0.106] SUCCESS
+
+
+================================
+[192.168.0.106 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.106:6380] Starting node ...
+
+mooon_ssh -h=192.168.0.106 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6380.conf"
+[192.168.0.106]
+[192.168.0.106] SUCCESS
+
+
+================================
+[192.168.0.106 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.101:6379] Starting node ...
+
+mooon_ssh -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6379.conf"
+[192.168.0.101]
+[192.168.0.101] SUCCESS
+
+
+================================
+[192.168.0.101 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.101:6380] Starting node ...
+
+mooon_ssh -h=192.168.0.101 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6380.conf"
+[192.168.0.101]
+[192.168.0.101] SUCCESS
+
+
+================================
+[192.168.0.101 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.104:6379] Starting node ...
+
+mooon_ssh -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6379.conf"
+[192.168.0.104]
+[192.168.0.104] SUCCESS
+
+
+================================
+[192.168.0.104 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.104:6380] Starting node ...
+
+mooon_ssh -h=192.168.0.104 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6380.conf"
+[192.168.0.104]
+[192.168.0.104] SUCCESS
+
+
+================================
+[192.168.0.104 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.103:6379] Starting node ...
+
+mooon_ssh -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6379.conf"
+[192.168.0.103]
+[192.168.0.103] SUCCESS
+
+
+================================
+[192.168.0.103 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.103:6380] Starting node ...
+
+mooon_ssh -h=192.168.0.103 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6380.conf"
+[192.168.0.103]
+[192.168.0.103] SUCCESS
+
+
+================================
+[192.168.0.103 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.102:6379] Starting node ...
+
+mooon_ssh -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6379.conf"
+[192.168.0.102]
+[192.168.0.102] SUCCESS
+
+
+================================
+[192.168.0.102 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.102:6380] Starting node ...
+
+mooon_ssh -h=192.168.0.102 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6380.conf"
+[192.168.0.102]
+[192.168.0.102] SUCCESS
+
+
+================================
+[192.168.0.102 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.107:6379] Starting node ...
+
+mooon_ssh -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6379.conf"
+[192.168.0.107]
+[192.168.0.107] SUCCESS
+
+
+================================
+[192.168.0.107 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.107:6380] Starting node ...
+
+mooon_ssh -h=192.168.0.107 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6380.conf"
+[192.168.0.107]
+[192.168.0.107] SUCCESS
+
+
+================================
+[192.168.0.107 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.108:6379] Starting node ...
+
+mooon_ssh -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6379.conf"
+[192.168.0.108]
+[192.168.0.108] SUCCESS
+
+
+================================
+[192.168.0.108 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.108:6380] Starting node ...
+
+mooon_ssh -h=192.168.0.108 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6380.conf"
+[192.168.0.108]
+[192.168.0.108] SUCCESS
+
+
+================================
+[192.168.0.108 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.105:6379] Starting node ...
+
+mooon_ssh -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6379.conf"
+[192.168.0.105]
+[192.168.0.105] SUCCESS
+
+
+================================
+[192.168.0.105 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.105:6380] Starting node ...
+
+mooon_ssh -h=192.168.0.105 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6380.conf"
+[192.168.0.105]
+[192.168.0.105] SUCCESS
+
+
+================================
+[192.168.0.105 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.109:6379] Starting node ...
+
+mooon_ssh -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6379.conf"
+[192.168.0.109]
+[192.168.0.109] SUCCESS
+
+
+================================
+[192.168.0.109 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+[192.168.0.109:6380] Starting node ...
+
+mooon_ssh -h=192.168.0.109 -P=22 -u=redis -p=redis^1234 -c="/usr/local/redis-4.0.11/bin/redis-server /usr/local/redis-4.0.11/conf/redis-6380.conf"
+[192.168.0.109]
+[192.168.0.109] SUCCESS
+
+
+================================
+[192.168.0.109 SUCCESS] 0 seconds
+SUCCESS: 1, FAILURE: 0
+
+================================
+Number of nodes: 18
+
+Create redis cluster? [yes/no] yes
+Starting to create redis cluster with 192.168.0.101:6379 192.168.0.102:6379 192.168.0.103:6379 192.168.0.104:6379 192.168.0.105:6379 192.168.0.106:6379 192.168.0.107:6379 192.168.0.108:6379 192.168.0.109:6379 192.168.0.101:6380 192.168.0.102:6380 192.168.0.103:6380 192.168.0.104:6380 192.168.0.105:6380 192.168.0.106:6380 192.168.0.107:6380 192.168.0.108:6380 192.168.0.109:6380 ... ...
+
+>>> Creating cluster
+>>> Performing hash slots allocation on 18 nodes...
+Using 9 masters:
+192.168.0.101:6379
+192.168.0.102:6379
+192.168.0.103:6379
+192.168.0.104:6379
+192.168.0.105:6379
+192.168.0.106:6379
+192.168.0.107:6379
+192.168.0.108:6379
+192.168.0.109:6379
+Adding replica 192.168.0.102:6380 to 192.168.0.101:6379
+Adding replica 192.168.0.103:6380 to 192.168.0.102:6379
+Adding replica 192.168.0.104:6380 to 192.168.0.103:6379
+Adding replica 192.168.0.105:6380 to 192.168.0.104:6379
+Adding replica 192.168.0.106:6380 to 192.168.0.105:6379
+Adding replica 192.168.0.107:6380 to 192.168.0.106:6379
+Adding replica 192.168.0.108:6380 to 192.168.0.107:6379
+Adding replica 192.168.0.109:6380 to 192.168.0.108:6379
+Adding replica 192.168.0.101:6380 to 192.168.0.109:6379
+M: 9630ea3f1ce15c8ab528ce1b25a349bba71b3f03 192.168.0.101:6379
+   slots:0-1819 (1820 slots) master
+M: fb8a2915708d863172d434198c4ca4b76b0e66f2 192.168.0.102:6379
+   slots:1820-3640 (1821 slots) master
+M: bbdd7f116995a7498f027de48f0757aae641e190 192.168.0.103:6379
+   slots:3641-5460 (1820 slots) master
+M: 2e9d2e0feaaac18aa62d4e25b909c865d41b4351 192.168.0.104:6379
+   slots:5461-7281 (1821 slots) master
+M: 8cf724204b6f83879c843070defa8781a110ba3c 192.168.0.105:6379
+   slots:7282-9101 (1820 slots) master
+M: 573d06d15b3e88f9e225c33069ff5c8da48d3144 192.168.0.106:6379
+   slots:9102-10922 (1821 slots) master
+M: 90d39d944d53de9d6680bc6d4c3ef18c182caa6c 192.168.0.107:6379
+   slots:10923-12742 (1820 slots) master
+M: d4454a9a8738fc3b81c9947e397cef9c0e70fac1 192.168.0.108:6379
+   slots:12743-14563 (1821 slots) master
+M: 7949cbf8e689a26a6701de87ddbb32be2d5c1897 192.168.0.109:6379
+   slots:14564-16383 (1820 slots) master
+S: bc8dc9b184d95f3e156e223379d3ede5fb1d09af 192.168.0.101:6380
+   replicates 7949cbf8e689a26a6701de87ddbb32be2d5c1897
+S: 8145dede5e0845bf9911cdf405dd93fdfd5de6a3 192.168.0.102:6380
+   replicates 9630ea3f1ce15c8ab528ce1b25a349bba71b3f03
+S: 9b133a388bfac8b9fb6c295fc59c7f3679eaf9c9 192.168.0.103:6380
+   replicates fb8a2915708d863172d434198c4ca4b76b0e66f2
+S: b558010a7b939dabcf161095a739cbda4f8e30e0 192.168.0.104:6380
+   replicates bbdd7f116995a7498f027de48f0757aae641e190
+S: 4b0c6570552b4f33ba930967b8fcefbe65367a2f 192.168.0.105:6380
+   replicates 2e9d2e0feaaac18aa62d4e25b909c865d41b4351
+S: 83cce7027022da7daa60493d3f8c761d8d403509 192.168.0.106:6380
+   replicates 8cf724204b6f83879c843070defa8781a110ba3c
+S: 34725ba72bf0857d4b40eec4a2d2871d66d1f9b9 192.168.0.107:6380
+   replicates 573d06d15b3e88f9e225c33069ff5c8da48d3144
+S: 11fb62ef8414a866217f38bcb439fbe1dd8f8ee5 192.168.0.108:6380
+   replicates 90d39d944d53de9d6680bc6d4c3ef18c182caa6c
+S: 6bae1e9b4f8966d8d69b8652bbb7b35b889faa18 192.168.0.109:6380
+   replicates d4454a9a8738fc3b81c9947e397cef9c0e70fac1
+Can I set the above configuration? (type 'yes' to accept): yes
+>>> Nodes configuration updated
+>>> Assign a different config epoch to each node
+>>> Sending CLUSTER MEET messages to join the cluster
+Waiting for the cluster to join..
+>>> Performing Cluster Check (using node 192.168.0.101:6379)
+M: 9630ea3f1ce15c8ab528ce1b25a349bba71b3f03 192.168.0.101:6379
+   slots:0-1819 (1820 slots) master
+   1 additional replica(s)
+M: d4454a9a8738fc3b81c9947e397cef9c0e70fac1 192.168.0.108:6379
+   slots:12743-14563 (1821 slots) master
+   1 additional replica(s)
+S: b558010a7b939dabcf161095a739cbda4f8e30e0 192.168.0.104:6380
+   slots: (0 slots) slave
+   replicates bbdd7f116995a7498f027de48f0757aae641e190
+S: 34725ba72bf0857d4b40eec4a2d2871d66d1f9b9 192.168.0.107:6380
+   slots: (0 slots) slave
+   replicates 573d06d15b3e88f9e225c33069ff5c8da48d3144
+S: 8145dede5e0845bf9911cdf405dd93fdfd5de6a3 192.168.0.102:6380
+   slots: (0 slots) slave
+   replicates 9630ea3f1ce15c8ab528ce1b25a349bba71b3f03
+M: 90d39d944d53de9d6680bc6d4c3ef18c182caa6c 192.168.0.107:6379
+   slots:10923-12742 (1820 slots) master
+   1 additional replica(s)
+M: 573d06d15b3e88f9e225c33069ff5c8da48d3144 192.168.0.106:6379
+   slots:9102-10922 (1821 slots) master
+   1 additional replica(s)
+M: 8cf724204b6f83879c843070defa8781a110ba3c 192.168.0.105:6379
+   slots:7282-9101 (1820 slots) master
+   1 additional replica(s)
+M: 7949cbf8e689a26a6701de87ddbb32be2d5c1897 192.168.0.109:6379
+   slots:14564-16383 (1820 slots) master
+   1 additional replica(s)
+S: 6bae1e9b4f8966d8d69b8652bbb7b35b889faa18 192.168.0.109:6380
+   slots: (0 slots) slave
+   replicates d4454a9a8738fc3b81c9947e397cef9c0e70fac1
+S: 83cce7027022da7daa60493d3f8c761d8d403509 192.168.0.106:6380
+   slots: (0 slots) slave
+   replicates 8cf724204b6f83879c843070defa8781a110ba3c
+S: 11fb62ef8414a866217f38bcb439fbe1dd8f8ee5 192.168.0.108:6380
+   slots: (0 slots) slave
+   replicates 90d39d944d53de9d6680bc6d4c3ef18c182caa6c
+M: fb8a2915708d863172d434198c4ca4b76b0e66f2 192.168.0.102:6379
+   slots:1820-3640 (1821 slots) master
+   1 additional replica(s)
+M: bbdd7f116995a7498f027de48f0757aae641e190 192.168.0.103:6379
+   slots:3641-5460 (1820 slots) master
+   1 additional replica(s)
+S: 4b0c6570552b4f33ba930967b8fcefbe65367a2f 192.168.0.105:6380
+   slots: (0 slots) slave
+   replicates 2e9d2e0feaaac18aa62d4e25b909c865d41b4351
+M: 2e9d2e0feaaac18aa62d4e25b909c865d41b4351 192.168.0.104:6379
+   slots:5461-7281 (1821 slots) master
+   1 additional replica(s)
+S: bc8dc9b184d95f3e156e223379d3ede5fb1d09af 192.168.0.101:6380
+   slots: (0 slots) slave
+   replicates 7949cbf8e689a26a6701de87ddbb32be2d5c1897
+S: 9b133a388bfac8b9fb6c295fc59c7f3679eaf9c9 192.168.0.103:6380
+   slots: (0 slots) slave
+   replicates fb8a2915708d863172d434198c4ca4b76b0e66f2
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+
+[zhangsan@mooon ~/redis-tools/deploy]$ 

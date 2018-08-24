@@ -1,5 +1,9 @@
 Redis和Redis集群部署工具
 
+注：
+本目录下的的redis.conf和redis-PORT.conf取自redis-4.0.11版本，新增了一些配置项，可能不适应于一些低版本。
+deploy_redis_cluster.log 为deploy_redis_cluster.sh示例的操作日志和运行日志
+
 依赖两个批量操作工具：mooon_ssh和mooon_upload，这两个批量操作工具有C++和GO两个版本。
 mooon-tools-glibc2.4_i386.tar.gz：32位版本的mooon_ssh和mooon_upload，运行依赖C++运行时库
 mooon-tools-glibc2.17_x86_64.tar.gz：64位版本的mooon_ssh和mooon_upload，运行依赖C++运行时库
