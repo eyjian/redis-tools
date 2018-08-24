@@ -14,6 +14,13 @@
 # 批量创建redis安装目录/data/redis-4.0.11，并设置owner为用户redis，用户组为redis示例：
 # mooon_ssh -c='mkdir /data/redis-4.0.11;ln -s /data/redis-4.0.11 /data/redis;chown redis:redis /data/redis*'
 #
+# 可使用process_monitor.sh监控redis-server进程重启：
+# https://github.com/eyjian/libmooon/blob/master/shell/process_monitor.sh
+# 使用示例：
+# * * * * * /usr/local/bin/process_monitor.sh "/usr/local/redis/bin/redis-server 6379" "/usr/local/redis/bin/redis-server /usr/local/redis/conf/redis-6379.conf"
+# * * * * * /usr/local/bin/process_monitor.sh "/usr/local/redis/bin/redis-server 6380" "/usr/local/redis/bin/redis-server /usr/local/redis/conf/redis-6380.conf"
+# 可在/tmp目录找到process_monitor.sh的运行日志，当对应端口的进程不在时，5秒内即会重启对应端口的进程。
+#
 # 运行参数：
 # 参数1 SSH端口
 # 参数2 安装用户
