@@ -5,6 +5,15 @@
 # 自动化部署redis集群工具，
 # 远程操作即可，不需登录到Redis集群中的任何机器。
 #
+# 以root用户批量创建用户redis示例：
+# export H=192.168.0.5,192.168.0.6,192.168.0.7,192.168.0.8,192.168.0.9
+# export U=root
+# export P='root^1234'
+# mooon_ssh -c='groupadd redis; useradd -g redis -m redis; echo "redis:redis#1234"|chpasswd'
+#
+# 批量创建redis安装目录/data/redis-4.0.11，并设置owner为用户redis，用户组为redis示例：
+# mooon_ssh -c='mkdir /data/redis-4.0.11;ln -s /data/redis-4.0.11 /data/redis;chown redis:redis /data/redis*'
+#
 # 运行参数：
 # 参数1 SSH端口
 # 参数2 安装用户
@@ -77,7 +86,7 @@ REDIS_PORT_CONF=$BASEDIR/redis-PORT.conf
 function usage()
 {
     echo -e "\033[1;33mUsage\033[m: `basename $0` \033[0;32;32mssh-port\033[m install-user \033[0;32;32minstall-user-password\033[m install-dir"
-    echo -e "\033[1;33mExample\033[m: `basename $0` \033[0;32;32m22\033[m redis \033[0;32;32mredis@1234\033[m /usr/local/redis-4.0.11"
+    echo -e "\033[1;33mExample\033[m: `basename $0` \033[0;32;32m22\033[m redis \033[0;32;32mredis^1234\033[m /usr/local/redis-4.0.11"
 }
 
 # 需要指定五个参数
@@ -95,6 +104,26 @@ echo -e "[install user] \033[1;33m$install_user\033[m"
 echo -e "[install directory] \033[1;33m$install_dir\033[m"
 echo ""
 
+# 检查ruby是否可用
+which ruby > /dev/null 2>&1
+if test $? -eq 0; then
+    echo -e "Checking ruby OK"
+else
+    echo -e "ruby \033[0;32;31mnot exists or not executable\033[m"
+    echo "https://www.ruby-lang.org"
+    exit 1
+fi
+
+# 检查gem是否可用
+which gem > /dev/null 2>&1
+if test $? -eq 0; then
+    echo -e "Checking gem OK"
+else
+    echo -e "gem \033[0;32;31mnot exists or not executable\033[m"
+    echo "https://rubygems.org/pages/download"
+    exit 1
+fi
+
 # 检查mooon_ssh是否可用
 which "$MOOON_SSH" > /dev/null 2>&1
 if test $? -eq 0; then
@@ -102,8 +131,9 @@ if test $? -eq 0; then
 else
     echo -e "$MOOON_SSH \033[0;32;31mnot exists or not executable\033[m"
     echo "There are two versions: C++ and GO:"
+    echo "https://github.com/eyjian/libmooon/releases"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_ssh.cpp"
-    echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_ssh.go"
+    echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_ssh.go"    
     echo ""
     exit 1
 fi
@@ -115,6 +145,7 @@ if test $? -eq 0; then
 else
     echo -e "$MOOON_UPLOAD \033[0;32;31mnot exists or not executable\033[m"
     echo "There are two versions: C++ and GO:"
+    echo "https://github.com/eyjian/libmooon/releases"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_upload.cpp"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_upload.go"
     echo ""
@@ -172,7 +203,7 @@ else
 fi
 
 # 检查redis.conf是否可用
-if test ! -r "$REDIS_CONF"; then
+if test -r "$REDIS_CONF"; then
     echo -e "Checking $REDIS_CONF OK"
 else
     echo -e "$REDIS_CONF \033[0;32;31mnot exists or not readable\033[m"
@@ -181,7 +212,7 @@ else
 fi
 
 # 检查redis-PORT.conf是否可用
-if test ! -r "$REDIS_PORT_CONF"; then
+if test -r "$REDIS_PORT_CONF"; then
     echo -e "Checking $REDIS_PORT_CONF OK"
 else
     echo -e "$REDIS_PORT_CONF \033[0;32;31mnot exists or not readable\033[m"
@@ -296,8 +327,8 @@ function install_common()
     fi
 }
 
-# 安装节点配置文件和启动redis实例
-function install_node()
+# 安装节点配置文件
+function install_node_conf()
 {
     redis_ip="$1"
     redis_port="$2"
@@ -311,6 +342,7 @@ function install_node()
     echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"cd $install_dir;mkdir -p data/$redis_port\""
     $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="cd $install_dir;mkdir -p data/$redis_port"
     if test $? -ne 0; then
+        rm -f redis-$redis_port.conf
         exit 1
     fi
 
@@ -319,8 +351,17 @@ function install_node()
     echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-$redis_port.conf -d=$install_dir/conf"
     $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-$redis_port.conf -d=$install_dir/conf    
     if test $? -ne 0; then
+        rm -f redis-$redis_port.conf
         exit 1
     fi
+
+    rm -f redis-$redis_port.conf
+}
+
+function start_redis_node()
+{
+    redis_ip="$1"
+    redis_port="$2"
 
     # 启动redis实例（start redis instance）
     echo ""
@@ -377,6 +418,8 @@ done
 echo ""
 echo -e "\033[1;33m================================\033[m"
 redis_node_array=`echo "$redis_nodes_str" | tr ',' '\n' | sort | uniq`
+
+# 安装节点配置文件
 for redis_node in ${redis_node_array[@]};
 do
     node_ip=
@@ -389,7 +432,37 @@ do
     fi
     
     echo -e "[\033[1;33m$node_ip:$node_port\033[m] Installing node ..."
-    install_node $node_ip $node_port
+    install_node_conf $node_ip $node_port
+done
+
+# 确认后再继续
+echo ""
+echo -e "\033[1;33m================================\033[m"
+while true
+do
+    echo -en "Start redis? [\033[1;33myes\033[m/\033[1;33mno\033[m]"
+    read -r -p " " input
+
+    if test "$input" = "no"; then
+        echo ""
+        exit 1
+    elif test "$input" = "yes"; then
+        echo "Starting to start redis ..."
+        echo ""
+        break
+    fi
+done
+
+# 启动redis实例（start redis instance）
+for redis_node in ${redis_node_array[@]};
+do
+    eval $(echo "$redis_node" | awk -F[\ \:,\;\t]+ '{ printf("node_ip=%s\nnode_port=%s\n",$1,$2); }')
+    if test -z "$node_ip" -o -z "$node_port"; then
+        continue
+    fi
+
+    echo -e "[\033[1;33m$node_ip:$node_port\033[m] Starting node ..."
+    start_redis_node $node_ip $node_port
 done
 
 echo ""
@@ -402,9 +475,25 @@ if test $num_nodes -lt 6; then
 else
     redis_nodes_str=`echo "$redis_nodes_str" | tr ',' ' '`
 
+    # 确认后再继续
+    echo ""
+    while true
+    do
+        echo -en "Create redis cluster? [\033[1;33myes\033[m/\033[1;33mno\033[m]"
+        read -r -p " " input
+
+        if test "$input" = "no"; then
+            echo ""
+            exit 1
+        elif test "$input" = "yes"; then
+            echo "Starting to create redis cluster with $redis_nodes_str ... ..."
+            echo ""
+            break
+        fi
+    done
+
     # 创建redis集群（create redis cluster）
-    # redis-trib.rb create --replicas 1
-    echo "Creating redis cluster with $redis_nodes_str ..."
+    # redis-trib.rb create --replicas 1    
     $REDIS_TRIB create --replicas 1 $redis_nodes_str
     echo ""
     exit 0
