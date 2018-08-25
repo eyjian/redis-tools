@@ -1,3 +1,4 @@
 deploy Redis和Redis集群部署工具
 check_redis_cluster.sh 检查Redis集群工具，依赖命令SCAN
 clear_redis_cluster.sh 清空Redis集群工具，依赖命令FLUSHALL
+deploy 集群部署工具（deploy_redis_cluster.sh）
