@@ -229,6 +229,7 @@ fi
 
 # check redis_cluster.nodes
 if test -r $REDIS_CLUSTER_NODES; then
+    cat $REDIS_CLUSTER_NODES
     echo -e "Checking $REDIS_CLUSTER_NODES OK"
 else
     echo -e "File $REDIS_CLUSTER_NODES \033[0;32;31mnot exits\033[m"
