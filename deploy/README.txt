@@ -1,5 +1,9 @@
 Redis和Redis集群部署工具
 
+REDIS.crontab crontab监控模板
+deploy_redis_cluster.sh 集群部署工具
+redis_cluster.nodes 集群所有节点和端口配置文件
+
 注：
 本目录下的的redis.conf和redis-PORT.conf取自redis-4.0.11版本，新增了一些配置项，可能不适应于一些低版本。
 deploy_redis_cluster.log 为deploy_redis_cluster.sh示例的操作日志和运行日志

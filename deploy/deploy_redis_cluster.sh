@@ -1,5 +1,5 @@
 #!/bin/bash
-# Writed by yijian on 2018/8/21
+# Writed by yijian on 2018/8/21 (eyjian@qq.com)
 # a tool to deploy a redis cluster
 #
 # 自动化部署redis集群工具，

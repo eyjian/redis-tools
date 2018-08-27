@@ -1,0 +1,13 @@
+# Added by yijian on 2018/8/27 (eyjian@qq.com)
+# redis的crontab进程监控设置
+# 使用前，请先设置好REDIS_HOME、REDIS_PORT1和REDIS_PORT2三者的值
+# REDIS_HOME指定redis的安装目录，REDIS_PORT指定redis的服务端口
+REDIS_HOME=/usr/local/redis
+REDIS_PORT1=6379
+REDIS_PORT2=6380
+# redis
+* * * * * /usr/local/bin/process_monitor.sh "$REDIS_HOME/bin/redis-server $REDIS_PORT1" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$REDIS_PORT1.conf"
+* * * * * /usr/local/bin/process_monitor.sh "$REDIS_HOME/bin/redis-server $REDIS_PORT2" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$REDIS_PORT2.conf"
+# rotate redis log
+0 2 * * * log=$REDIS_HOME/log/redis-$REDIS_PORT1.log;if test -f $log; then if test `ls -l $log|cut -d' ' -f5` -gt 104857600; then mv $log $log.old ; fi fi
+1 2 * * * log=$REDIS_HOME/log/redis-$REDIS_PORT2.log;if test -f $log; then if test `ls -l $log|cut -d' ' -f5` -gt 104857600; then mv $log $log.old ; fi fi
