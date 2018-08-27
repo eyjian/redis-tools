@@ -89,6 +89,14 @@ REDIS_CONF=$BASEDIR/redis.conf
 # redis-PORT.conf
 REDIS_PORT_CONF=$BASEDIR/redis-PORT.conf
 
+# 全局变量
+# 组成redis集群的总共节点数
+num_nodes=0
+# 组成redis集群的所有IP数组
+redis_node_ip_array=()
+# 组成redis集群的所有节点数组（IP+port构造一个redis节点）
+redis_node_array=()
+
 # 用法
 function usage()
 {
@@ -99,6 +107,7 @@ function usage()
 # 需要指定五个参数
 if test $# -ne 4; then
     usage
+    echo ""
     exit 1
 fi
 
@@ -118,6 +127,7 @@ if test $? -eq 0; then
 else
     echo -e "ruby \033[0;32;31mnot exists or not executable\033[m"
     echo "https://www.ruby-lang.org"
+    echo -e "Exit now\n"
     exit 1
 fi
 
@@ -128,6 +138,7 @@ if test $? -eq 0; then
 else
     echo -e "gem \033[0;32;31mnot exists or not executable\033[m"
     echo "https://rubygems.org/pages/download"
+    echo -e "Exit now\n"
     exit 1
 fi
 
@@ -141,7 +152,7 @@ else
     echo "https://github.com/eyjian/libmooon/releases"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_ssh.cpp"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_ssh.go"    
-    echo ""
+    echo -e "Exit now\n"
     exit 1
 fi
 
@@ -155,7 +166,7 @@ else
     echo "https://github.com/eyjian/libmooon/releases"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_upload.cpp"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_upload.go"
-    echo ""
+    echo -e "Exit now\n"
     exit 1
 fi
 
@@ -165,7 +176,7 @@ if test $? -eq 0; then
     echo -e "Checking $REDIS_TRIB OK"
 else
     echo -e "$REDIS_TRIB \033[0;32;31mnot exists or not executable\033[m"
-    echo ""
+    echo -e "Exit now\n"
     exit 1
 fi
 
@@ -175,7 +186,7 @@ if test $? -eq 0; then
     echo -e "Checking $REDIS_SERVER OK"
 else
     echo -e "$REDIS_SERVER \033[0;32;31mnot exists or not executable\033[m"
-    echo ""
+    echo -e "Exit now\n"
     exit 1
 fi
 
@@ -185,7 +196,7 @@ if test $? -eq 0; then
     echo -e "Checking $REDIS_CLI OK"
 else
     echo -e "$REDIS_CLI \033[0;32;31mnot exists or not executable\033[m"
-    echo ""
+    echo -e "Exit now\n"
     exit 1
 fi
 
@@ -195,7 +206,7 @@ if test $? -eq 0; then
     echo -e "Checking $REDIS_CHECK_AOF OK"
 else
     echo -e "$REDIS_CHECK_AOF \033[0;32;31mnot exists or not executable\033[m"
-    echo ""
+    echo -e "Exit now\n"
     exit 1
 fi
 
@@ -205,7 +216,7 @@ if test $? -eq 0; then
     echo -e "Checking $REDIS_CHECK_RDB OK"
 else
     echo -e "$REDIS_CHECK_RDB \033[0;32;31mnot exists or not executable\033[m"
-    echo ""
+    echo -e "Exit now\n"
     exit 1
 fi
 
@@ -214,7 +225,7 @@ if test -r "$REDIS_CONF"; then
     echo -e "Checking $REDIS_CONF OK"
 else
     echo -e "$REDIS_CONF \033[0;32;31mnot exists or not readable\033[m"
-    echo ""
+    echo -e "Exit now\n"
     exit 1
 fi
 
@@ -223,15 +234,68 @@ if test -r "$REDIS_PORT_CONF"; then
     echo -e "Checking $REDIS_PORT_CONF OK"
 else
     echo -e "$REDIS_PORT_CONF \033[0;32;31mnot exists or not readable\033[m"
-    echo ""
+    echo -e "Exit now\n"
     exit 1
 fi
 
+# 解析redis_cluster.nodes文件，
+# 从而得到组成redis集群的所有节点。
+function parse_redis_cluster_nodes()
+{    
+    redis_nodes_str=
+    redis_nodes_ip_str=
+    while read line
+    do
+        # 删除前尾空格
+        line=`echo "$line" | xargs`
+        if test -z "$line" -o "$line" = "#"; then
+            continue
+        fi
+
+        # 跳过注释
+        begin_char=${line:0:1}
+        if test "$begin_char" = "#"; then
+            continue
+        fi
+
+        # 取得IP和端口
+        eval $(echo "$line" | awk -F[\ \:,\;\t]+ '{ printf("ip=%s\nport=%s\n",$1,$2); }')
+
+        # IP和端口都必须有
+        if test ! -z "$ip" -a ! -z "$port"; then
+            if test -z "$redis_nodes_ip_str"; then
+                redis_nodes_ip_str=$ip
+            else
+                redis_nodes_ip_str="$redis_nodes_ip_str,$ip"
+            fi
+
+            if test -z "$redis_nodes_str"; then
+                redis_nodes_str="$ip:$port"
+            else
+                redis_nodes_str="$redis_nodes_str,$ip:$port"
+            fi          
+        fi
+    done < $REDIS_CLUSTER_NODES   
+    
+    if test -z "$redis_nodes_ip_str"; then
+        num_nodes=0
+    else
+        # 得到IP数组redis_node_ip_array    
+        redis_node_ip_array=`echo "$redis_nodes_ip_str" | tr ',' '\n' | sort | uniq`
+
+        # 得到节点数组redis_node_array
+        redis_node_array=`echo "$redis_nodes_str" | tr ',' '\n' | sort | uniq`
+        
+        for redis_node in ${redis_node_array[@]};
+        do
+            num_nodes=$((++num_nodes))
+            echo "$redis_node"
+        done
+    fi
+}
+
 # check redis_cluster.nodes
-if test -r $REDIS_CLUSTER_NODES; then
-    cat $REDIS_CLUSTER_NODES
-    echo -e "Checking $REDIS_CLUSTER_NODES OK"
-else
+if test ! -r $REDIS_CLUSTER_NODES; then
     echo -e "File $REDIS_CLUSTER_NODES \033[0;32;31mnot exits\033[m"
     echo ""
     echo -e "\033[0;32;32mFile format\033[m (columns delimited by space, tab, comma, semicolon or colon):"
@@ -245,19 +309,36 @@ else
     echo "127.0.0.1 6384"
     echo "127.0.0.1 6385"
     echo "127.0.0.1 6386"
-    echo ""
+    echo -e "Exit now\n"
     exit 1
+else    
+    echo -e "\033[0;32;32m"
+    parse_redis_cluster_nodes
+    echo -e "\033[m"
+
+    if test $num_nodes -lt 1; then
+        echo -e "Checking $REDIS_CLUSTER_NODES \033[0;32;32mfailed\033[m: no any node"
+        echo -e "Exit now\n"
+        exit 1
+    else
+        echo -e "Checking $REDIS_CLUSTER_NODES OK, the number of nodes is \033[1;33m${num_nodes}\033[m"
+    fi
 fi
 
 # 确认后再继续
-echo ""
 while true
 do
-    echo -en "Are you sure? [\033[1;33myes\033[m/\033[1;33mno\033[m]"
+    # 组成一个redis集群至少需要六个节点
+    if test $num_nodes -lt 6; then
+        echo -e "\033[0;32;32mAt least 6 nodes are required to create a redis cluster\033[m"
+    fi
+
+    # 提示是否继续
+    echo -en "Are you sure to continue? [\033[1;33myes\033[m/\033[1;33mno\033[m]"
     read -r -p " " input
 
     if test "$input" = "no"; then
-        echo ""
+        echo -e "Exit now\n"
         exit 1
     elif test "$input" = "yes"; then
         echo "Starting to install ..."
@@ -293,7 +374,7 @@ function install_common()
     if test $? -ne 0; then
         echo ""
         echo -e "Directory $install_dir \033[1;33mnot exists or no (rwx) permission\033[m"
-        echo ""
+        echo -e "Exit now\n"
         exit 1
     fi
 
@@ -306,6 +387,7 @@ function install_common()
         echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"rm -fr $install_dir/*\""
         $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="rm -fr $install_dir/*"
         if test $? -ne 0; then
+            echo -e "Exit now\n"
             exit 1
         fi
     fi
@@ -315,6 +397,7 @@ function install_common()
     echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"cd $install_dir;mkdir -p bin conf log data\""
     $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="cd $install_dir;mkdir -p bin conf log data"
     if test $? -ne 0; then
+        echo -e "Exit now\n"
         exit 1
     fi
 
@@ -323,6 +406,7 @@ function install_common()
     echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis.conf -d=$install_dir/conf"
     $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis.conf -d=$install_dir/conf 
     if test $? -ne 0; then
+        echo -e "Exit now\n"
         exit 1
     fi
 
@@ -331,6 +415,7 @@ function install_common()
     echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=$install_dir/bin"    
     $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb,redis-trib.rb -d=$install_dir/bin
     if test $? -ne 0; then
+        echo -e "Exit now\n"
         exit 1
     fi
 }
@@ -351,6 +436,7 @@ function install_node_conf()
     $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="cd $install_dir;mkdir -p data/$redis_port"
     if test $? -ne 0; then
         rm -f redis-$redis_port.conf
+        echo -e "Exit now\n"
         exit 1
     fi
 
@@ -360,6 +446,7 @@ function install_node_conf()
     $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-$redis_port.conf -d=$install_dir/conf    
     if test $? -ne 0; then
         rm -f redis-$redis_port.conf
+        echo -e "Exit now\n"
         exit 1
     fi
 
@@ -376,63 +463,27 @@ function start_redis_node()
     echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"$install_dir/bin/redis-server $install_dir/conf/redis-$redis_port.conf\""    
     $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="nohup $install_dir/bin/redis-server $install_dir/conf/redis-$redis_port.conf > /dev/null 2>&1 &"
     if test $? -ne 0; then
+        echo -e "Exit now\n"
         exit 1
     fi
 }
 
-# 批量安装redis（batch to install redis）
-num_nodes=0
-redis_nodes_str=
-redis_nodes_ip_str=
-while read line
-do
-    line=`echo "$line" | xargs`
-    if test -z "$line" -o "$line" = "#"; then
-        continue
-    fi
-
-    # 跳过注释
-    begin_char=${line:0:1}
-    if test "$begin_char" = "#"; then
-        continue
-    fi
-
-    eval $(echo "$line" | awk -F[\ \:,\;\t]+ '{ printf("ip=%s\nport=%s\n",$1,$2); }')
-    if test ! -z "$ip" -a ! -z "$port"; then
-        if test -z "$redis_nodes_ip_str"; then
-            redis_nodes_ip_str=$ip
-        else
-            redis_nodes_ip_str="$redis_nodes_ip_str,$ip"
-        fi
-
-        if test -z "$redis_nodes_str"; then
-            redis_nodes_str="$ip:$port"
-        else
-            redis_nodes_str="$redis_nodes_str,$ip:$port"
-        fi          
-    fi
-done < $REDIS_CLUSTER_NODES
-
-# 得到IP数组redis_node_ip_array
+# 安装公共的，包括可执行程序文件和公共配置文件
+echo ""
 echo -e "\033[1;33m================================\033[m"
-redis_node_ip_array=`echo "$redis_nodes_ip_str" | tr ',' '\n' | sort | uniq`
 for redis_node_ip in $redis_node_ip_array;
 do
     echo -e "[\033[1;33m$redis_node_ip\033[m] Installing common ..."
     install_common $redis_node_ip
 done
 
-# 得到节点数组redis_node_array
+# 安装节点配置文件
 echo ""
 echo -e "\033[1;33m================================\033[m"
-redis_node_array=`echo "$redis_nodes_str" | tr ',' '\n' | sort | uniq`
-
-# 安装节点配置文件
 for redis_node in ${redis_node_array[@]};
 do
     node_ip=
     node_port=
-    num_nodes=$((++num_nodes))
 
     eval $(echo "$redis_node" | awk -F[\ \:,\;\t]+ '{ printf("node_ip=%s\nnode_port=%s\n",$1,$2); }')
     if test -z "$node_ip" -o -z "$node_port"; then
@@ -478,7 +529,7 @@ echo -e "\033[1;33m================================\033[m"
 echo "Number of nodes: $num_nodes"
 if test $num_nodes -lt 6; then
     echo "Number of nodes less than 6, can not create redis cluster"
-    echo ""
+    echo -e "Exit now\n"
     exit 1
 else
     redis_nodes_str=`echo "$redis_nodes_str" | tr ',' ' '`
@@ -503,6 +554,6 @@ else
     # 创建redis集群（create redis cluster）
     # redis-trib.rb create --replicas 1    
     $REDIS_TRIB create --replicas 1 $redis_nodes_str
-    echo ""
+    echo -e "Exit now\n"
     exit 0
 fi
