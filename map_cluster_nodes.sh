@@ -69,7 +69,8 @@ do
 done
 
 # 找出所有slave
-slaves=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/slave/{ printf("%s,%s\n",$5,$2); }' | sort`
+# “CLUSTER NODES”命令的输出格式当前有两个版本，需要awk需要根据NF的值做区分
+slaves=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/slave/{ if (NF==9) printf("%s,%s\n",$5,$2); else printf("%s,%s\n",$4,$2); }' | sort`
 for slave in $slaves;
 do
     eval $(echo $slave | awk -F[,] '{ printf("master_id=%s\nslave_node=%s\n",$1,$2); }')
@@ -115,9 +116,9 @@ do
 
     n=$(($index % 2))
     if test $n -eq 0; then
-        printf "[%02d][SLAVE=>MASTER] \033[1;33m%21s\033[m  =>  \033[1;33m%s\033[m%s\n" $index $slave_node $master_node $tag
+        printf "[%02d][SLAVE=>MASTER] \033[1;33m%21s\033[m  =>  \033[1;33m%s\033[m%s\n" $index $slave_node $master_node "$tag"
     else
-        printf "[%02d][SLAVE=>MASTER] %21s  =>  %s%s\n" $index $slave_node $master_node $tag
+        printf "[%02d][SLAVE=>MASTER] %21s  =>  %s%s\n" $index $slave_node $master_node "$tag"
     fi
     
     index=$((++index))
