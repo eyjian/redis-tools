@@ -51,19 +51,22 @@ fi
 declare -A master_map=()
 # slave映表，key为master的id，value为slave的“ip:port”
 declare -A slave_map=()
+master_node_str=
+master_slave_map_str=
 
 # 找出所有master
-index=1
 masters=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/master/{ printf("%s,%s\n",$1,$2); }' | sort`
 for master in $masters;
 do    
     eval $(echo $master | awk -F[,] '{ printf("master_id=%s\nmaster_node=%s\n",$1,$2); }')
     
-    master_map[$master_id]=$master_node
-    printf "[MASTER][%02d] %s\n" $index $master_node
-    index=$((++index))
+    master_map[$master_id]=$master_node    
+    if test -z "$master_node_str"; then
+        master_node_str="$master_node"
+    else
+        master_node_str="$master_node,$master_node_str"
+    fi
 done
-echo ""
 
 # 找出所有slave
 slaves=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/slave/{ printf("%s,%s\n",$5,$2); }' | sort`
@@ -73,24 +76,43 @@ do
     slave_map[$master_id]=$slave_node
 done
 
-flag=0
-index=1
 for key in ${!master_map[@]}
 do
     master_node=${master_map[$key]}
     slave_node=${slave_map[$key]}
-    
-    if test $flag -eq 0; then
-        printf "[MAP][%02d] \033[1;33m%-20s\033[m =>  \033[1;33m%s\033[m\n" $index $slave_node $master_node
+
+    if test -z "$master_slave_map_str"; then
+        master_slave_map_str="$slave_node#$master_node"
     else
-        printf "[MAP][%02d] \033[0;32;32m%-20s\033[m =>  \033[0;32;32m%s\033[m\n" $index $slave_node $master_node
+        master_slave_map_str="$slave_node#$master_node,$master_slave_map_str"
+    fi
+done
+
+# 显示所有master
+index=1
+master_nodes=`echo "$master_node_str" | tr ',' '\n' | sort`
+for maste_node in $master_nodes;
+do
+    printf "[%02d][MASTER] %s\n" $index "$maste_node"
+    index=$((++index))
+done
+
+# 显示所有slave到master的映射
+index=1
+echo ""
+master_slave_nodes=`echo "$master_slave_map_str" | tr ',' '\n' | sort`
+for master_slave_node in $master_slave_nodes;
+do
+    line=`echo "$master_slave_node" | sed 's/#/  =>  /g'`
+
+    n=$(($index % 2))
+    if test $n -eq 1; then
+        printf "[%02d][SLAVE=>MASTER]  \033[1;33m%s\033[m\n" $index "$line"
+    else
+        printf "[%02d][SLAVE=>MASTER]  %s\n" $index "$line"
     fi
 
     index=$((++index))
-    if test $flag -eq 0; then
-        flag=1
-    else
-        flag=0
-    fi
 done
+
 echo ""
