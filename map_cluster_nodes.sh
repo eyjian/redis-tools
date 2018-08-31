@@ -91,11 +91,20 @@ done
 
 # 显示所有master
 index=1
+old_master_node_ip=
 master_nodes_str=`echo "$master_nodes_str" | tr ',' '\n' | sort`
 for master_node_str in $master_nodes_str;
 do
     eval $(echo "$master_node_str" | awk -F[\|] '{ printf("master_node=%s\nmaster_id=%s\n", $1, $2); }')
-    printf "[%02d][MASTER]  %-20s \033[0;32;31m%s\033[m\n" $index "$master_node" "$master_id"
+    eval $(echo "$master_node" | awk -F[\:] '{ printf("master_node_ip=%s\nmaster_node_port=%s\n", $1, $2); }')
+
+    tag=
+    if test "$master_node_ip" = "$old_master_node_ip"; then
+        tag="  (*)"
+    fi
+
+    printf "[%02d][MASTER]  %-20s \033[0;32;31m%s\033[m%s\n" $index "$master_node" "$master_id" "$tag"
+    old_master_node_ip=$master_node_ip
     index=$((++index))
 done
 
