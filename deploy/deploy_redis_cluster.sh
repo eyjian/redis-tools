@@ -1,5 +1,6 @@
 #!/bin/bash
 # Writed by yijian on 2018/8/21 (eyjian@qq.com)
+# 源代码：https://github.com/eyjian/redis-tools
 # a tool to deploy a redis cluster
 #
 # 自动化部署redis集群工具，
