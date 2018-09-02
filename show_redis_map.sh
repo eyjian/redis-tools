@@ -2,19 +2,30 @@
 # Writed by yijian on 2018/8/24
 #
 # 检查Redis集群master和slave映射关系工具，
-# 可用来查看是否多master出现在同一IP，
-# 或一对master和slave出现在同一IP。
+# 可用来查看是否多master出现在同一IP，或一对master和slave出现在同一IP。
+# 当同一IP出现二个或多个master，则相应的行标星显示，
+# 如果一对master和slave出现在同一IP上，则相应的行标星显示。
 #
 # 输出效果：
-# [1] 192.168.1.21:6379   =>  192.168.1.27:6380
-# [2] 192.168.1.22:6379   =>  192.168.1.26:6380
-# [3] 192.168.1.23:6379   =>  192.168.1.29:6379
-# [4] 192.168.1.24:6379   =>  192.168.1.25:6380
-# [5] 192.168.1.25:6379   =>  192.168.1.24:6380
-# [6] 192.168.1.26:6379   =>  192.168.1.22:6380
-# [7] 192.168.1.27:6379   =>  192.168.1.21:6380
-# [8] 192.168.1.28:6379   =>  192.168.1.23:6380
-# [9] 192.168.1.29:6380   =>  192.168.1.28:6380
+# [01][MASTER]  192.168.0.21:2018 00cc3f37d938ee8ba672bc77b71d8e0a3881a98b
+# [02][MASTER]  192.168.0.22:2018   1115713e3c311166207f3a9f1445b4e32a9202d7
+# [03][MASTER]  192.168.0.23:2018   5cb6946f46ccdf543e5a1efada6806f3df72b727
+# [04][MASTER]  192.168.0.24:2018   b91b1309b05f0dcc1e3a2a9521b8c00702999744
+# [05][MASTER]  192.168.0.25:2018   00a1ba8e5cb940ba4171e0f4415b91cea96977bc
+# [06][MASTER]  192.168.0.26:2018     64facb201cc5c7d8cdccb5fa211af5e1a04a9786
+# [07][MASTER]  192.168.0.27:2018     f119780359c0e43d19592db01675df2f776181b1
+# [08][MASTER]  192.168.0.28:2018     d374e28578967f96dcb75041e30a5a1e23693e56
+# [09][MASTER]  192.168.0.29:2019     a153d2071251657004dbe77abd10e2de7f0a209a
+#
+# [01][SLAVE=>MASTER]  192.168.0.21:2019  =>  192.168.0.28:2018
+# [02][SLAVE=>MASTER]    192.168.0.22:2019  =>  192.168.0.25:2018
+# [03][SLAVE=>MASTER]    192.168.0.23:2019  =>  192.168.0.24:2018
+# [04][SLAVE=>MASTER]    192.168.0.24:2019  =>  192.168.0.23:2018
+# [05][SLAVE=>MASTER]    192.168.0.25:2019  =>  192.168.0.22:2018
+# [06][SLAVE=>MASTER]      192.168.0.26:2019  =>  192.168.0.27:2018
+# [07][SLAVE=>MASTER]      192.168.0.27:2019  =>  192.168.0.29:2019
+# [08][SLAVE=>MASTER]      192.168.0.28:2019  =>  192.168.0.21:2018
+# [09][SLAVE=>MASTER]      192.168.0.29:2018  =>  192.168.0.26:2018
 
 REDIS_CLI=${REDIS_CLI:-redis-cli}
 REDIS_IP=${REDIS_IP:-127.0.0.1}
@@ -59,7 +70,7 @@ masters=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/m
 for master in $masters;
 do    
     eval $(echo $master | awk -F[,] '{ printf("master_id=%s\nmaster_node=%s\n",$1,$2); }')
-    
+
     master_map[$master_id]=$master_node    
     if test -z "$master_nodes_str"; then
         master_nodes_str="$master_node|$master_id"
@@ -99,6 +110,7 @@ do
     eval $(echo "$master_node" | awk -F[\:] '{ printf("master_node_ip=%s\nmaster_node_port=%s\n", $1, $2); }')
 
     tag=
+    # 同一IP上出现多个master，标星
     if test "$master_node_ip" = "$old_master_node_ip"; then
         tag="  (*)"
     fi
@@ -117,8 +129,9 @@ do
     eval $(echo "$master_slave_map_str" | awk -F[\|] '{ printf("slave_node=%s\nmaster_node=%s\n", $1, $2); }')
     eval $(echo "$slave_node" | awk -F[\:] '{ printf("slave_node_ip=%s\nslave_node_port=%s\n", $1, $2); }')
     eval $(echo "$master_node" | awk -F[\:] '{ printf("master_node_ip=%s\nmaster_node_port=%s\n", $1, $2); }')
-    
+
     tag=
+    # 一对master和slave出现在同一IP，标星
     if test ! -z "$slave_node_ip" -a "$slave_node_ip" = "$master_node_ip"; then
         tag="  (*)"
     fi
@@ -129,7 +142,7 @@ do
     else
         printf "[%02d][SLAVE=>MASTER] %21s  =>  %s%s\n" $index $slave_node $master_node "$tag"
     fi
-    
+
     index=$((++index))
 done
 
