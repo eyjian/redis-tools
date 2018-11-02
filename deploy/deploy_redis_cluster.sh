@@ -75,12 +75,12 @@ REDIS_CLUSTER_NODES=$BASEDIR/redis_cluster.nodes
 MOOON_SSH=mooon_ssh
 # 批量上传工具
 MOOON_UPLOAD=mooon_upload
-# 创建redis集群工具
-REDIS_TRIB=$BASEDIR/redis-trib.rb
 # redis-server
 REDIS_SERVER=$BASEDIR/redis-server
-# redis-cli
+# redis-cli（5.0版本开始支持创建集群，可取代redis-trib.rb）
 REDIS_CLI=$BASEDIR/redis-cli
+# 创建redis集群工具（如果REDIS_CLI为5.0版本，则该工具不需要）
+REDIS_TRIB=$BASEDIR/redis-trib.rb
 # redis-check-aof
 REDIS_CHECK_AOF=$BASEDIR/redis-check-aof
 # redis-check-rdb
@@ -171,16 +171,6 @@ else
     exit 1
 fi
 
-# 检查redis-trib.rb是否可用
-which "$REDIS_TRIB" > /dev/null 2>&1
-if test $? -eq 0; then
-    echo -e "Checking $REDIS_TRIB OK"
-else
-    echo -e "$REDIS_TRIB \033[0;32;31mnot exists or not executable\033[m"
-    echo -e "Exit now\n"
-    exit 1
-fi
-
 # 检查redis-server是否可用
 which "$REDIS_SERVER" > /dev/null 2>&1
 if test $? -eq 0; then
@@ -237,6 +227,21 @@ else
     echo -e "$REDIS_PORT_CONF \033[0;32;31mnot exists or not readable\033[m"
     echo -e "Exit now\n"
     exit 1
+fi
+
+# 得到redis-cli主版本号
+# 如果低于5，则用REDIS_TRIB创建集群，否则直接用redis-cli创建集群
+redis_cli_ver=`$REDIS_CLI --version|awk -F[\ .] '{printf("%d\n",$2);}'`
+if test $redis_cli_ver -lt 5; then
+    # 检查redis-trib.rb是否可用
+    which "$REDIS_TRIB" > /dev/null 2>&1
+    if test $? -eq 0; then
+        echo -e "Checking $REDIS_TRIB OK"
+    else
+        echo -e "$REDIS_TRIB \033[0;32;31mnot exists or not executable\033[m"
+        echo -e "Exit now\n"
+        exit 1
+    fi
 fi
 
 # 解析redis_cluster.nodes文件，
@@ -553,8 +558,12 @@ else
     done
 
     # 创建redis集群（create redis cluster）
-    # redis-trib.rb create --replicas 1    
-    $REDIS_TRIB create --replicas 1 $redis_nodes_str
+    if test $redis_cli_ver -lt 5; then
+        # redis-trib.rb create --replicas 1    
+        $REDIS_TRIB create --replicas 1 $redis_nodes_str
+    else
+        $REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1
+    fi
     echo -e "Exit now\n"
     exit 0
 fi
