@@ -1,5 +1,5 @@
 #!/bin/sh
-# https://github.com/eyjian/mooon/blob/master/common_library/shell/process_monitor.sh
+# https://github.com/eyjian/libmooon/blob/master/shell/process_monitor.sh
 # Created by yijian on 2012/7/23
 #
 # 运行日志：/tmp/process_monitor-USER.log，由于多进程同时写，不一定完整，仅供参考。
@@ -28,10 +28,15 @@
 # /usr/local/bin/process_monitor.sh "/usr/local/bin/test wangwu" "/usr/local/bin/test --name=wangwu"
 # /usr/local/bin/process_monitor.sh "/usr/local/bin/test zhangsan" "/usr/local/bin/test --name=zhangsan"
 
+# crontab技巧：
+# 1）公共的定义为变量
+# 2）如果包含了特殊字符，比如分号则使用单引用号，而不能用双引号，比如：
+# RECEIVERS="tom;mike;jay"
+# * * * * * * * * * * /usr/local/bin/process_monitor.sh "/tmp/test" "/tmp/test '$RECEIVERS'"
+
 # 注意事项：
 # 不管是监控脚本还是可执行程序，
 # 均要求使用绝对路径，即必须以“/”打头的路径。
-#
 
 # 需要指定个数的命令行参数
 # 参数1：被监控的进程名（可以包含命令行参数，而且必须包含绝对路径方式）
@@ -135,11 +140,29 @@ log_filepath=/tmp/process_monitor-$cur_user.log
 # 日志文件大小（10M）
 log_filesize=10485760
 
+# 关闭所有已打开的文件描述符
+# 子进程不能继承，否则会导致本脚本自身的日志文件滚动时，被删除的备份不能被释放
+close_all_fd()
+{
+    return
+    # 0, 1, 2, 255
+    # compgen -G "/proc/$BASHPID/fd/*
+    for fd in $(ls /proc/$$/fd); do
+        if test $fd -ge 0; then
+            # 关闭文件描述符fd
+            eval "exec $fd>&-"
+            #eval "exec $fd<&-"
+        fi
+    done
+}
+# 导出close_all_fd
+export -f close_all_fd
+
 # 写日志函数，带1个参数：
 # 1) 需要写入的日志
 log()
 {
-    # 创建日志文件，如果不存在的话    
+    # 创建日志文件，如果不存在的话
     if test ! -f $log_filepath; then
         touch $log_filepath
     fi
@@ -214,11 +237,11 @@ if test $p1 != "/"; then
     process_filetype=2
 else
     file $process_full_filepath |grep ELF >/dev/null
-    if test $? -eq 0; then    
+    if test $? -eq 0; then
         process_filetype=1
     else
         file $process_full_filepath |grep script >/dev/null
-        if test $? -eq 0; then        
+        if test $? -eq 0; then
             process_filetype=0
         else
             echo "unknown file type: process_raw_filepath\n"
@@ -240,8 +263,8 @@ while true; do
     if test $ONLY_TEST -eq 1; then
         log "self_count: $self_count\n"
     fi
-    if test ! -z "$self_count"; then 
-        if test $self_count -gt 2; then 
+    if test ! -z "$self_count"; then
+        if test $self_count -gt 2; then
             log "$0 is running[$self_count/active:$active], current user is $cur_user\n"
             # 经测试，正常情况下一般为2，
             # 但运行一段时间后，会出现值为3，因此放在crontab中非常必要
@@ -260,7 +283,7 @@ while true; do
             process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if ($1==uid) && ($2==process_full_filepath)) ++num; } END { printf("%d",num); }' uid=$uid process_full_filepath=$process_full_filepath`
         else # 未知类型文件
             process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if ($1==uid) ++num; } END { printf("%d",num); }' uid=$uid`
-        fi        
+        fi
     else
         if test $process_filetype -eq 0; then # 可执行脚本文件
             process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if (($1==uid) && match($0, process_match) && ($3==process_full_filepath)) ++num; } END { printf("%d",num); }' uid=$uid process_full_filepath=$process_full_filepath process_match="$process_match"`
@@ -268,9 +291,9 @@ while true; do
             process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if (($1==uid) && match($0, process_match) && ($2==process_full_filepath)) ++num; } END { printf("%d",num); }' uid=$uid process_full_filepath=$process_full_filepath process_match="$process_match"`
         else # 未知类型文件
             process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if (($1==uid) && match($0, process_match)) ++num; } END { printf("%d",num); }' uid=$uid process_match="$process_match"`
-        fi        
+        fi
     fi
-    
+
     if test $ONLY_TEST -eq 1; then
         log "process_count: $process_count\n"
     fi
@@ -278,7 +301,11 @@ while true; do
         if test $process_count -lt 1; then
             # 执行重启脚本，要求这个脚本能够将指定的进程拉起来
             log "restart \"$process_cmdline\"\n"
-            sh -c "$restart_script" >> $log_filepath 2>&1 # 注意一定要以“sh -c”方式执行
+            #sh -c "$restart_script" 2>&1 >> $log_filepath
+            msg=`sh -c "$restart_script" 2>&1`
+            if test ! -z "${msg}"; then
+                log "${msg}\n"
+            fi
 
             # sleep时间得长一点，原因是启动可能没那么快，以防止启动多个进程
             # 在某些环境遇到sleep无效，正常sleep后“$?”值为0，则异常时变成“141”，
