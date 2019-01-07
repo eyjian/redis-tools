@@ -11,13 +11,15 @@ deploy_redis_cluster.log 为deploy_redis_cluster.sh示例的操作日志和运�
 依赖两个批量操作工具：mooon_ssh和mooon_upload，这两个批量操作工具有C++和GO两个版本。
 mooon-tools-glibc2.4_i386.tar.gz：32位版本的mooon_ssh和mooon_upload，运行依赖C++运行时库
 mooon-tools-glibc2.17_x86_64.tar.gz：64位版本的mooon_ssh和mooon_upload，运行依赖C++运行时库
-注：GO版本的mooon_ssh和mooon_upload不依赖依赖C++运行时库
+注1：GO版本的mooon_ssh和mooon_upload不依赖依赖C++运行时库
+注2：只有当使用5.0版本之前的redis-cli时，才需要安装ruby和gem，
+     因为5.0版本开始，创建集群只能直接使用redis-cli，而不能再使用redis-trib.rb脚本。
 
 在执行deploy_redis_cluster.sh之前，
 需要先完成下列前置工作（只需要在任意一台可SSH连接Redis集群的机器上完成）：
-1）安装好了ruby，并且版本不低于2.0.0（方法参见Redis集群安装文章）
-2）安装好了ruby包管理器RubyGems（方法参见Redis集群安装文章）
-3）安装好了redis-X.X.X.gem，并且版本不低于3.0.0（方法参见Redis集群安装文章）
+1）（仅redis-cli版本低于5.0时要求）安装好了ruby，并且版本不低于2.0.0（方法参见Redis集群安装文章）
+2）（仅redis-cli版本低于5.0时要求）安装好了ruby包管理器RubyGems（方法参见Redis集群安装文章）
+3）（仅redis-cli版本低于5.0时要求）安装好了redis-X.X.X.gem，并且版本不低于3.0.0（方法参见Redis集群安装文章）
 4）准备好了批量命令工具mooon_ssh
 5）准备好了批量上传工具mooon_upload
 6）准备好了公共的redis配置文件redis.conf
@@ -64,8 +66,9 @@ Redis集群安装文章：
 1）https://blog.csdn.net/Aquester/article/details/50150163
 2）http://blog.chinaunix.net/uid-20682147-id-5557566.html
 
-注意ruby和redis-X.X.X.gem的版本并非越高越好，最新版本也可能导致安装失败，
+注意，ruby和redis-X.X.X.gem的版本并非越高越好，最新版本也可能导致安装失败，
 截至到redis-4.0.11版本，ruby 2.X.X配合redis-3.X.X.gem一般没有问题。
+另注意，只有当使用的redis-cli版本低于5.0，才涉及ruby和gem的安装，否则直接忽略。
 
 以root用户安装rubygems，如果yum可用，只需执行“yum -y install rubygems”即可，否则按以下步骤操作：
 1）解压安装包，如：unzip rubygems-2.7.7.zip

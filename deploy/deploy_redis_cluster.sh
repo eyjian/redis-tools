@@ -32,15 +32,15 @@
 # 1）安装用户已经创建好
 # 2）安装用户密码已经设置好
 # 3）安装目录已经创建好，并且目录的owner为安装用户
-# 4）执行本工具的机器上安装好了ruby，且版本号不低于2.0.0
-# 5）执行本工具的机器上安装好了redis-X.Y.Z.gem，且版本号不低于redis-3.0.0.gem
+# 4）执行本工具的机器上安装好了ruby，且版本号不低于2.0.0（仅redis-cli版本低于5.0时要求）
+# 5）执行本工具的机器上安装好了redis-X.Y.Z.gem，且版本号不低于redis-3.0.0.gem（仅redis-cli版本低于5.0时要求）
 #
 # 6）同目录下存在以下几个可执行文件：
 # 6.1）redis-server
 # 6.2）redis-cli
 # 6.3）redis-check-rdb
 # 6.4）redis-check-aof
-# 6.5）redis-trib.rb
+# 6.5）redis-trib.rb（仅redis-cli版本低于5.0时要求）
 #
 # 7）同目录下存在以下两个配置文件：
 # 7.1）redis.conf
