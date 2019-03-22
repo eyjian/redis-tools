@@ -7,8 +7,11 @@
 # 1) 一对master和slave出现在同一物理IP上（影响：物理机挂掉，部分keys彻底不可用）
 # 2) 同一物理IP上出现多个master（影响：物理机挂掉，将导致两对切换）
 #
-# 使用示例（带一个参数）：
-# show_redis_map.sh 192.168.0.21:6380
+# 带2个参数，
+# 第1个参数为REdis的节点字符串，
+# 第2个参数可选，为连接REdis的密码。
+# 使用示例1）show_redis_map.sh 192.168.0.21:6380
+# 使用示例2）show_redis_map.sh 192.168.0.21:6380 password
 #
 # 检查Redis集群master和slave映射关系的命令行工具：
 # 1) 查看是否多master出现在同一IP；
@@ -44,12 +47,13 @@ REDIS_PORT=${REDIS_PORT:-6379}
 
 function usage()
 {
-    echo "usage: `basename $0` redis_node"
-    echo "example: `basename $0` 127.0.0.1:6379"    
+    echo "Usage: `basename $0` redis_node [redis_password]"
+    echo "Example1: `basename $0` 127.0.0.1:6379"
+    echo "Example2: `basename $0` 127.0.0.1:6379 password"
 }
 
 # with a parameter: single redis node
-if test $# -ne 1; then
+if test $# -ne 1 -a $# -ne 2; then
     usage    
     exit 1
 fi
@@ -57,7 +61,7 @@ fi
 # 检查参数
 eval $(echo "$1" | awk -F[\:] '{ printf("REDIS_IP=%s\nREDIS_PORT=%s\n",$1,$2) }')
 if test -z "$REDIS_IP" -o -z "$REDIS_PORT"; then
-    echo "parameter error"
+    echo "Parameter error"
     usage
     exit 1
 fi
@@ -76,8 +80,22 @@ declare -A slave_map=()
 master_nodes_str=
 master_slave_maps_str=
 
+# 如果出错，不用继续
+set -e
+
 # 找出所有master
-masters=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/master/{ printf("%s,%s\n",$1,$2); }' | sort`
+# 因为前面的“set -e”，所以如果第1步出错，则后面的awk将不会执行
+if test $# -eq 1; then    
+    masters=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/master/{ printf("%s,%s\n",$1,$2); }' | sort`
+else
+    masters=`$REDIS_CLI -a "$2" -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/master/{ printf("%s,%s\n",$1,$2); }' | sort`
+fi
+if test -z "$masters"; then
+    # 可能是因为密码错误
+    # (error) NOAUTH Authentication required.
+    $REDIS_CLI -a "$2" -h $REDIS_IP -p $REDIS_PORT PING "hello"    
+    exit 1
+fi
 for master in $masters;
 do    
     eval $(echo $master | awk -F[,] '{ printf("master_id=%s\nmaster_node=%s\n",$1,$2); }')
@@ -92,7 +110,11 @@ done
 
 # 找出所有slave
 # “CLUSTER NODES”命令的输出格式当前有两个版本，需要awk需要根据NF的值做区分
-slaves=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/slave/{ if (NF==9) printf("%s,%s\n",$5,$2); else printf("%s,%s\n",$4,$2); }' | sort`
+if test $# -eq 1; then
+    slaves=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/slave/{ if (NF==9) printf("%s,%s\n",$5,$2); else printf("%s,%s\n",$4,$2); }' | sort`
+else
+    slaves=`$REDIS_CLI -a "$2" -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/slave/{ if (NF==9) printf("%s,%s\n",$5,$2); else printf("%s,%s\n",$4,$2); }' | sort`
+fi
 for slave in $slaves;
 do
     eval $(echo $slave | awk -F[,] '{ printf("master_id=%s\nslave_node=%s\n",$1,$2); }')
@@ -158,3 +180,4 @@ do
 done
 
 echo ""
+exit 0
