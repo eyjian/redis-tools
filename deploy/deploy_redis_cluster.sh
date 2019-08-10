@@ -116,18 +116,18 @@ ssh_port="$1"
 install_user="$2"
 install_user_password="$3"
 install_dir="$4"
-echo -e "[ssh port] \033[1;33m$ssh_port\033[m"
-echo -e "[install user] \033[1;33m$install_user\033[m"
-echo -e "[install directory] \033[1;33m$install_dir\033[m"
+echo -e "[ssh port] \033[1;33m$ssh_port.\033[m"
+echo -e "[install user] \033[1;33m$install_user.\033[m"
+echo -e "[install directory] \033[1;33m$install_dir.\033[m"
 echo ""
 
 # 检查redis-cli是否可用
 which "$REDIS_CLI" > /dev/null 2>&1
 if test $? -eq 0; then
-    echo -e "Checking $REDIS_CLI OK"
+    echo -e "Checking $REDIS_CLI OK."
 else
-    echo -e "$REDIS_CLI \033[0;32;31mnot exists or not executable\033[m"
-    echo -e "Exit now\n"
+    echo -e "$REDIS_CLI \033[0;32;31mnot exists or not executable.\033[m"
+    echo -e "Exit now.\n"
     exit 1
 fi
 
@@ -142,32 +142,32 @@ if test $redis_cli_ver -lt 5; then
     # 检查redis-trib.rb是否可用
     which "$REDIS_TRIB" > /dev/null 2>&1
     if test $? -eq 0; then
-        echo -e "Checking $REDIS_TRIB OK"
+        echo -e "Checking $REDIS_TRIB OK."
     else
-        echo -e "$REDIS_TRIB \033[0;32;31mnot exists or not executable\033[m"
-        echo -e "Exit now\n"
+        echo -e "$REDIS_TRIB \033[0;32;31mnot exists or not executable.\033[m"
+        echo -e "Exit now.\n"
         exit 1
     fi
 
     # 检查ruby是否可用
     which ruby > /dev/null 2>&1
     if test $? -eq 0; then
-        echo -e "Checking ruby OK"
+        echo -e "Checking ruby OK."
     else
-        echo -e "ruby \033[0;32;31mnot exists or not executable\033[m"
-        echo "https://www.ruby-lang.org"
-        echo -e "Exit now\n"
+        echo -e "ruby \033[0;32;31mnot exists or not executable.\033[m"
+        echo "https://www.ruby-lang.org."
+        echo -e "Exit now.\n"
         exit 1
     fi
 
     # 检查gem是否可用
     which gem > /dev/null 2>&1
     if test $? -eq 0; then
-        echo -e "Checking gem OK"
+        echo -e "Checking gem OK."
     else
-        echo -e "gem \033[0;32;31mnot exists or not executable\033[m"
-        echo "https://rubygems.org/pages/download"
-        echo -e "Exit now\n"
+        echo -e "gem \033[0;32;31mnot exists or not executable.\033[m"
+        echo "https://rubygems.org/pages/download."
+        echo -e "Exit now.\n"
         exit 1
     fi
 fi
@@ -175,76 +175,76 @@ fi
 # 检查mooon_ssh是否可用
 which "$MOOON_SSH" > /dev/null 2>&1
 if test $? -eq 0; then
-    echo -e "Checking $MOOON_SSH OK"
+    echo -e "Checking $MOOON_SSH OK."
 else
-    echo -e "$MOOON_SSH \033[0;32;31mnot exists or not executable\033[m"
+    echo -e "$MOOON_SSH \033[0;32;31mnot exists or not executable.\033[m"
     echo "There are two versions: C++ and GO:"
     echo "https://github.com/eyjian/libmooon/releases"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_ssh.cpp"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_ssh.go"
-    echo -e "Exit now\n"
+    echo -e "Exit now.\n"
     exit 1
 fi
 
 # 检查mooon_upload是否可用
 which "$MOOON_UPLOAD" > /dev/null 2>&1
 if test $? -eq 0; then
-    echo -e "Checking $MOOON_UPLOAD OK"
+    echo -e "Checking $MOOON_UPLOAD OK."
 else
-    echo -e "$MOOON_UPLOAD \033[0;32;31mnot exists or not executable\033[m"
+    echo -e "$MOOON_UPLOAD \033[0;32;31mnot exists or not executable.\033[m"
     echo "There are two versions: C++ and GO:"
     echo "https://github.com/eyjian/libmooon/releases"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_upload.cpp"
     echo "https://raw.githubusercontent.com/eyjian/libmooon/master/tools/mooon_upload.go"
-    echo -e "Exit now\n"
+    echo -e "Exit now.\n"
     exit 1
 fi
 
 # 检查redis-server是否可用
 which "$REDIS_SERVER" > /dev/null 2>&1
 if test $? -eq 0; then
-    echo -e "Checking $REDIS_SERVER OK"
+    echo -e "Checking $REDIS_SERVER OK."
 else
-    echo -e "$REDIS_SERVER \033[0;32;31mnot exists or not executable\033[m"
-    echo -e "Exit now\n"
+    echo -e "$REDIS_SERVER \033[0;32;31mnot exists or not executable.\033[m"
+    echo -e "Exit now.\n"
     exit 1
 fi
 
 # 检查redis-check-aof是否可用
 which "$REDIS_CHECK_AOF" > /dev/null 2>&1
 if test $? -eq 0; then
-    echo -e "Checking $REDIS_CHECK_AOF OK"
+    echo -e "Checking $REDIS_CHECK_AOF OK."
 else
-    echo -e "$REDIS_CHECK_AOF \033[0;32;31mnot exists or not executable\033[m"
-    echo -e "Exit now\n"
+    echo -e "$REDIS_CHECK_AOF \033[0;32;31mnot exists or not executable.\033[m"
+    echo -e "Exit now.\n"
     exit 1
 fi
 
 # 检查redis-check-rdb是否可用
 which "$REDIS_CHECK_RDB" > /dev/null 2>&1
 if test $? -eq 0; then
-    echo -e "Checking $REDIS_CHECK_RDB OK"
+    echo -e "Checking $REDIS_CHECK_RDB OK."
 else
-    echo -e "$REDIS_CHECK_RDB \033[0;32;31mnot exists or not executable\033[m"
-    echo -e "Exit now\n"
+    echo -e "$REDIS_CHECK_RDB \033[0;32;31mnot exists or not executable.\033[m"
+    echo -e "Exit now.\n"
     exit 1
 fi
 
 # 检查redis.conf是否可用
 if test -r "$REDIS_CONF"; then
-    echo -e "Checking $REDIS_CONF OK"
+    echo -e "Checking $REDIS_CONF OK."
 else
-    echo -e "$REDIS_CONF \033[0;32;31mnot exists or not readable\033[m"
-    echo -e "Exit now\n"
+    echo -e "$REDIS_CONF \033[0;32;31mnot exists or not readable.\033[m"
+    echo -e "Exit now.\n"
     exit 1
 fi
 
 # 检查redis-PORT.conf是否可用
 if test -r "$REDIS_PORT_CONF"; then
-    echo -e "Checking $REDIS_PORT_CONF OK"
+    echo -e "Checking $REDIS_PORT_CONF OK."
 else
-    echo -e "$REDIS_PORT_CONF \033[0;32;31mnot exists or not readable\033[m"
-    echo -e "Exit now\n"
+    echo -e "$REDIS_PORT_CONF \033[0;32;31mnot exists or not readable.\033[m"
+    echo -e "Exit now.\n"
     exit 1
 fi
 
@@ -306,7 +306,7 @@ function parse_redis_cluster_nodes()
 
 # check redis_cluster.nodes
 if test ! -r $REDIS_CLUSTER_NODES; then
-    echo -e "File $REDIS_CLUSTER_NODES \033[0;32;31mnot exits\033[m"
+    echo -e "File $REDIS_CLUSTER_NODES \033[0;32;31mnot exits.\033[m"
     echo ""
     echo -e "\033[0;32;32mFile format\033[m (columns delimited by space, tab, comma, semicolon or colon):"
     echo "IP1 port1"
@@ -319,7 +319,7 @@ if test ! -r $REDIS_CLUSTER_NODES; then
     echo "127.0.0.1 6384"
     echo "127.0.0.1 6385"
     echo "127.0.0.1 6386"
-    echo -e "Exit now\n"
+    echo -e "Exit now.\n"
     exit 1
 else
     echo -e "\033[0;32;32m"
@@ -327,8 +327,8 @@ else
     echo -e "\033[m"
 
     if test $num_nodes -lt 1; then
-        echo -e "Checking $REDIS_CLUSTER_NODES \033[0;32;32mfailed\033[m: no any node"
-        echo -e "Exit now\n"
+        echo -e "Checking $REDIS_CLUSTER_NODES \033[0;32;32mfailed\033[m: no any node."
+        echo -e "Exit now.\n"
         exit 1
     else
         echo -e "Checking $REDIS_CLUSTER_NODES OK, the number of nodes is \033[1;33m${num_nodes}\033[m"
@@ -340,7 +340,7 @@ while true
 do
     # 组成一个redis集群至少需要六个节点
     if test $num_nodes -lt 6; then
-        echo -e "\033[0;32;32mAt least 6 nodes are required to create a redis cluster\033[m"
+        echo -e "\033[0;32;32mAt least 6 nodes are required to create a redis cluster.\033[m"
     fi
 
     # 提示是否继续
@@ -348,7 +348,7 @@ do
     read -r -p " " input
 
     if test "$input" = "no"; then
-        echo -e "Exit now\n"
+        echo -e "Exit now.\n"
         exit 1
     elif test "$input" = "yes"; then
         echo "Starting to install ..."
@@ -357,26 +357,14 @@ do
     fi
 done
 
-# 是否先清空安装目录再安装？
-clear_install_directory=
-while true
-do
-    echo -en "Clear install directory? [\033[1;33myes\033[m/\033[1;33mno\033[m]"
-    read -r -p " " clear_install_directory
-
-    if test "$clear_install_directory" = "no"; then
-        echo ""
-        break
-    elif test "$clear_install_directory" = "yes"; then
-        echo ""
-        break
-    fi
-done
-
 # 安装公共的，包括可执行程序文件和公共配置文件
+# 两个参数：
+# 1）参数1：目标Redis的IP
+# 2）参数2：是否清空安装目录（值为yes表示清空，否则不清空）
 function install_common()
 {
     redis_ip="$1"
+    clear_install_directory="$2"
 
     # 自动创建安装目录
     $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="if test ! -d $install_dir; then mkdir -p $install_dir; fi"
@@ -386,8 +374,8 @@ function install_common()
     $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="test -d $install_dir && test -r $install_dir && test -w $install_dir && test -x $install_dir"
     if test $? -ne 0; then
         echo ""
-        echo -e "Directory $install_dir \033[1;33mnot exists or no (rwx) permission\033[m"
-        echo -e "Exit now\n"
+        echo -e "Directory $install_dir \033[1;33mnot exists or no (rwx) permission\033[m, or \033[1;33mcan not login $redis_ip:$ssh_port by $install_user.\033[m"
+        echo -e "Exit now.\n"
         exit 1
     fi
 
@@ -400,7 +388,7 @@ function install_common()
         echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"rm -fr $install_dir/*\""
         $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="rm -fr $install_dir/*"
         if test $? -ne 0; then
-            echo -e "Exit now\n"
+            echo -e "Exit now.\n"
             exit 1
         fi
     fi
@@ -410,7 +398,7 @@ function install_common()
     echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"cd $install_dir;mkdir -p bin conf log data\""
     $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="cd $install_dir;mkdir -p bin conf log data"
     if test $? -ne 0; then
-        echo -e "Exit now\n"
+        echo -e "Exit now.\n"
         exit 1
     fi
 
@@ -419,7 +407,7 @@ function install_common()
     echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis.conf -d=$install_dir/conf"
     $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis.conf -d=$install_dir/conf
     if test $? -ne 0; then
-        echo -e "Exit now\n"
+        echo -e "Exit now.\n"
         exit 1
     fi
 
@@ -428,7 +416,7 @@ function install_common()
     echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=$install_dir/bin"
     $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb,redis-trib.rb -d=$install_dir/bin
     if test $? -ne 0; then
-        echo -e "Exit now\n"
+        echo -e "Exit now.\n"
         exit 1
     fi
 }
@@ -449,7 +437,7 @@ function install_node_conf()
     $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="cd $install_dir;mkdir -p data/$redis_port"
     if test $? -ne 0; then
         rm -f redis-$redis_port.conf
-        echo -e "Exit now\n"
+        echo -e "Exit now.\n"
         exit 1
     fi
 
@@ -459,7 +447,7 @@ function install_node_conf()
     $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-$redis_port.conf -d=$install_dir/conf
     if test $? -ne 0; then
         rm -f redis-$redis_port.conf
-        echo -e "Exit now\n"
+        echo -e "Exit now.\n"
         exit 1
     fi
 
@@ -476,19 +464,28 @@ function start_redis_node()
     echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"$install_dir/bin/redis-server $install_dir/conf/redis-$redis_port.conf\""
     $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="nohup $install_dir/bin/redis-server $install_dir/conf/redis-$redis_port.conf > /dev/null 2>&1 &"
     if test $? -ne 0; then
-        echo -e "Exit now\n"
+        echo -e "Exit now.\n"
         exit 1
     fi
 }
 
-# 安装公共的，包括可执行程序文件和公共配置文件
+# 询问是否安装公共
 echo ""
 echo -e "\033[1;33m================================\033[m"
-for redis_node_ip in $redis_node_ip_array;
-do
-    echo -e "[\033[1;33m$redis_node_ip\033[m] Installing common ..."
-    install_common $redis_node_ip
-done
+echo -en "Install common (files & directories etc.)? [\033[1;33myes\033[m/\033[1;33mno\033[m]"
+read -r -p " " to_install_common
+if test "X$to_install_common" = "Xyes"; then
+    # 是否先清空安装目录再安装？
+    echo -en "Clear install directory? [\033[1;33myes\033[m/\033[1;33mno\033[m]"
+    read -r -p " " clear_install_directory
+
+    # 安装公共的，包括可执行程序文件和公共配置文件
+    for redis_node_ip in $redis_node_ip_array;
+    do
+        echo -e "[\033[1;33m$redis_node_ip\033[m] Installing common ..."
+        install_common "$redis_node_ip" "$clear_install_directory"
+    done
+fi
 
 # 安装节点配置文件
 echo ""
@@ -541,8 +538,8 @@ echo ""
 echo -e "\033[1;33m================================\033[m"
 echo "Number of nodes: $num_nodes"
 if test $num_nodes -lt 6; then
-    echo "Number of nodes less than 6, can not create redis cluster"
-    echo -e "Exit now\n"
+    echo "Number of nodes less than 6, can not create redis cluster."
+    echo -e "Exit now.\n"
     exit 1
 else
     redis_nodes_str=`echo "$redis_nodes_str" | tr ',' ' '`
@@ -573,6 +570,6 @@ else
         echo "$REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1"
         $REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1
     fi
-    echo -e "Exit now\n"
+    echo -e "Exit now.\n"
     exit 0
 fi
