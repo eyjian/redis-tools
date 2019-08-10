@@ -378,6 +378,9 @@ function install_common()
 {
     redis_ip="$1"
 
+    # 自动创建安装目录
+    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="if test ! -d $install_dir; then mkdir -p $install_dir; fi"
+
     # 检查安装目录是否存在，且有读写权限
     echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"test -d $install_dir && test -r $install_dir && test -w $install_dir && test -x $install_dir\""
     $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="test -d $install_dir && test -r $install_dir && test -w $install_dir && test -x $install_dir"
