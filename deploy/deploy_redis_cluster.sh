@@ -331,7 +331,7 @@ else
         echo -e "Exit now.\n"
         exit 1
     else
-        echo -e "Checking $REDIS_CLUSTER_NODES OK, the number of nodes is \033[1;33m${num_nodes}\033[m"
+        echo -e "Checking $REDIS_CLUSTER_NODES OK, the number of nodes is \033[1;33m${num_nodes}\033[m."
     fi
 fi
 
@@ -468,6 +468,24 @@ function start_redis_node()
         exit 1
     fi
 }
+
+# 检查所有节点是否权限正常
+echo -e "\033[1;33m================================\033[m"
+echo -e "Press \033[1;33mENTER\033[m key to check login permissions by user '$install_user'."
+read -r -p ""
+for redis_node_ip in $redis_node_ip_array;
+do
+    redis_ip=$redis_node_ip
+    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="whoami"
+    if test $? -ne 0; then
+        echo -e "No permissions in \033[0;32;31m$redis_ip\033[m."
+        echo -e "Exit now.\n"
+        exit 1
+    else
+        echo -e "Checked $redis_ip \033[1;33mok\033[m."
+        echo ""
+    fi
+done
 
 # 询问是否安装公共
 echo ""
