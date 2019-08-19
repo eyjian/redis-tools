@@ -367,11 +367,11 @@ function install_common()
     clear_install_directory="$2"
 
     # 自动创建安装目录
-    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="if test ! -d $install_dir; then mkdir -p $install_dir; fi"
+    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -c="if test ! -d $install_dir; then mkdir -p $install_dir; fi"
 
     # 检查安装目录是否存在，且有读写权限
-    echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"test -d $install_dir && test -r $install_dir && test -w $install_dir && test -x $install_dir\""
-    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="test -d $install_dir && test -r $install_dir && test -w $install_dir && test -x $install_dir"
+    echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -c=\"test -d $install_dir && test -r $install_dir && test -w $install_dir && test -x $install_dir\""
+    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -c="test -d $install_dir && test -r $install_dir && test -w $install_dir && test -x $install_dir"
     if test $? -ne 0; then
         echo ""
         echo -e "Directory $install_dir \033[1;33mnot exists or no (rwx) permission\033[m, or \033[1;33mcan not login $redis_ip:$ssh_port by $install_user.\033[m"
@@ -382,11 +382,11 @@ function install_common()
     # 清空安装目录
     if test "$clear_install_directory" = "yes"; then
         echo ""
-        echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"killall -q -w -u $install_user redis-server\""
-        $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="killall -q -w -u $install_user redis-server"
+        echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -c=\"killall -q -w -u $install_user redis-server\""
+        $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -c="killall -q -w -u $install_user redis-server"
 
-        echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"rm -fr $install_dir/*\""
-        $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="rm -fr $install_dir/*"
+        echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -c=\"rm -fr $install_dir/*\""
+        $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -c="rm -fr $install_dir/*"
         if test $? -ne 0; then
             echo -e "Exit now.\n"
             exit 1
@@ -395,8 +395,8 @@ function install_common()
 
     # 创建公共目录（create directory）
     echo ""
-    echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"cd $install_dir;mkdir -p bin conf log data\""
-    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="cd $install_dir;mkdir -p bin conf log data"
+    echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -c=\"cd $install_dir;mkdir -p bin conf log data\""
+    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -c="cd $install_dir;mkdir -p bin conf log data"
     if test $? -ne 0; then
         echo -e "Exit now.\n"
         exit 1
@@ -404,8 +404,8 @@ function install_common()
 
     # 上传公共配置文件（upload configuration files）
     echo ""
-    echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis.conf -d=$install_dir/conf"
-    $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis.conf -d=$install_dir/conf
+    echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -s=redis.conf -d=$install_dir/conf"
+    $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -s=redis.conf -d=$install_dir/conf
     if test $? -ne 0; then
         echo -e "Exit now.\n"
         exit 1
@@ -413,8 +413,8 @@ function install_common()
 
     # 上传公共执行文件（upload executable files）
     echo ""
-    echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=$install_dir/bin"
-    $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb,redis-trib.rb -d=$install_dir/bin
+    echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=$install_dir/bin"
+    $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb,redis-trib.rb -d=$install_dir/bin
     if test $? -ne 0; then
         echo -e "Exit now.\n"
         exit 1
@@ -433,8 +433,8 @@ function install_node_conf()
 
     # 创建节点数据目录（create data directory for the given node）
     echo ""
-    echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"cd $install_dir;mkdir -p data/$redis_port\""
-    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="cd $install_dir;mkdir -p data/$redis_port"
+    echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -c=\"cd $install_dir;mkdir -p data/$redis_port\""
+    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -c="cd $install_dir;mkdir -p data/$redis_port"
     if test $? -ne 0; then
         rm -f redis-$redis_port.conf
         echo -e "Exit now.\n"
@@ -443,8 +443,8 @@ function install_node_conf()
 
     # 上传节点配置文件（upload configuration files）
     echo ""
-    echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-$redis_port.conf -d=$install_dir/conf"
-    $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -s=redis-$redis_port.conf -d=$install_dir/conf
+    echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -s=redis-$redis_port.conf -d=$install_dir/conf"
+    $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -s=redis-$redis_port.conf -d=$install_dir/conf
     if test $? -ne 0; then
         rm -f redis-$redis_port.conf
         echo -e "Exit now.\n"
@@ -461,8 +461,8 @@ function start_redis_node()
 
     # 启动redis实例（start redis instance）
     echo ""
-    echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c=\"$install_dir/bin/redis-server $install_dir/conf/redis-$redis_port.conf\""
-    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="nohup $install_dir/bin/redis-server $install_dir/conf/redis-$redis_port.conf > /dev/null 2>&1 &"
+    echo "$MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -c=\"$install_dir/bin/redis-server $install_dir/conf/redis-$redis_port.conf\""
+    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -c="nohup $install_dir/bin/redis-server $install_dir/conf/redis-$redis_port.conf > /dev/null 2>&1 &"
     if test $? -ne 0; then
         echo -e "Exit now.\n"
         exit 1
@@ -476,7 +476,7 @@ read -r -p ""
 for redis_node_ip in $redis_node_ip_array;
 do
     redis_ip=$redis_node_ip
-    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p=$install_user_password -c="whoami"
+    $MOOON_SSH -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -c="whoami"
     if test $? -ne 0; then
         echo -e "No permissions in \033[0;32;31m$redis_ip\033[m."
         echo -e "Exit now.\n"
