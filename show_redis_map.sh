@@ -47,9 +47,9 @@ REDIS_PORT=${REDIS_PORT:-6379}
 
 function usage()
 {
-    echo "Usage: `basename $0` redis_node [redis_password]"
+    echo "Usage: `basename $0` redis_node [redis-password]"
     echo "Example1: `basename $0` 127.0.0.1:6379"
-    echo "Example2: `basename $0` 127.0.0.1:6379 password"
+    echo "Example2: `basename $0` 127.0.0.1:6379 redis-password"
 }
 
 # with a parameter: single redis node
@@ -88,12 +88,12 @@ set -e
 if test $# -eq 1; then    
     masters=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/master/{ printf("%s,%s\n",$1,$2); }' | sort`
 else
-    masters=`$REDIS_CLI -a "$2" -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/master/{ printf("%s,%s\n",$1,$2); }' | sort`
+    masters=`$REDIS_CLI --no-auth-warning -a "$2" -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/master/{ printf("%s,%s\n",$1,$2); }' | sort`
 fi
 if test -z "$masters"; then
     # 可能是因为密码错误
     # (error) NOAUTH Authentication required.
-    $REDIS_CLI -a "$2" -h $REDIS_IP -p $REDIS_PORT PING "hello"    
+    $REDIS_CLI --no-auth-warning -a "$2" -h $REDIS_IP -p $REDIS_PORT PING "hello"    
     exit 1
 fi
 for master in $masters;
@@ -113,7 +113,7 @@ done
 if test $# -eq 1; then
     slaves=`$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/slave/{ if (NF==9) printf("%s,%s\n",$5,$2); else printf("%s,%s\n",$4,$2); }' | sort`
 else
-    slaves=`$REDIS_CLI -a "$2" -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/slave/{ if (NF==9) printf("%s,%s\n",$5,$2); else printf("%s,%s\n",$4,$2); }' | sort`
+    slaves=`$REDIS_CLI --no-auth-warning -a "$2" -h $REDIS_IP -p $REDIS_PORT CLUSTER NODES | awk -F[\ \@] '/slave/{ if (NF==9) printf("%s,%s\n",$5,$2); else printf("%s,%s\n",$4,$2); }' | sort`
 fi
 for slave in $slaves;
 do

@@ -29,14 +29,23 @@ REDIS_PORT=${REDIS_PORT:-6379}
 
 function usage()
 {
-    echo "Usage: `basename $0` redis_node"    
-    echo "Example: `basename $0` 127.0.0.1:6379"    
+    echo "Usage: `basename $0` redis_node [redis-password]"
+    echo "Example1: `basename $0` 127.0.0.1:6379"
+    echo "Example2: `basename $0` 127.0.0.1:6379 redis-password"
 }
 
-# with a parameter: single redis node
-if test $# -ne 1; then    
+# with two parameters:
+# 1) single redis node
+# 2) redis password
+if test $# -eq 0 -o $# -gt 2; then
     usage
     exit 1
+fi
+
+# 如果有两个参数，则第2个参数为密码
+redis_password=
+if test $# -eq 2; then
+    redis_password="$2"
 fi
 
 eval $(echo "$1" | awk -F[\:] '{ printf("REDIS_IP=%s\nREDIS_PORT=%s\n",$1,$2) }')
@@ -53,10 +62,17 @@ if test $? -ne 0; then
     exit 1
 fi
 
-redis_nodes=`redis-cli -h $REDIS_IP -p $REDIS_PORT cluster nodes | awk -F[\ \:\@] '!/ERR/{ printf("%s:%s\n",$2,$3); }'`
+if test -z "$redis_password"; then
+    redis_nodes=`redis-cli -h $REDIS_IP -p $REDIS_PORT cluster nodes \
+| awk -F[\ \:\@] '!/ERR/{ printf("%s:%s\n",$2,$3); }'`
+else
+    redis_nodes=`redis-cli --no-auth-warning -a "$redis_password" -h $REDIS_IP -p $REDIS_PORT cluster nodes \
+| awk -F[\ \:\@] '!/ERR/{ printf("%s:%s\n",$2,$3); }'`
+fi
 if test -z "$redis_nodes"; then
     # standlone
-    $REDIS_CLI -h $REDIS_IP -p $REDIS_PORT FLUSHALL
+    #$REDIS_CLI -h $REDIS_IP -p $REDIS_PORT FLUSHALL
+    $REDIS_CLI -h $REDIS_IP -p $REDIS_PORT INFO
 else
     # cluster
     for redis_node in $redis_nodes;
@@ -64,8 +80,12 @@ else
         if test ! -z "$redis_node"; then
             eval $(echo "$redis_node" | awk -F[\:] '{ printf("redis_node_ip=%s\nredis_node_port=%s\n",$1,$2) }')
 
-            if test ! -z "$redis_node_ip" -a ! -z "$redis_node_port"; then                
-                items=(`$REDIS_CLI -h $redis_node_ip -p $redis_node_port INFO MEMORY 2>&1 | tr '\r' ' '`)
+            if test ! -z "$redis_node_ip" -a ! -z "$redis_node_port"; then
+                if test -z "$redis_password"; then
+                    items=(`$REDIS_CLI -h $redis_node_ip -p $redis_node_port INFO MEMORY 2>&1 | tr '\r' ' '`)
+                else
+                    items=(`$REDIS_CLI --no-auth-warning -a "$redis_password" -h $redis_node_ip -p $redis_node_port INFO MEMORY 2>&1 | tr '\r' ' '`)
+                fi
 
                 used_memory_rss_human=0
                 maxmemory_human=0
@@ -83,7 +103,7 @@ else
                     fi
                 done
 
-                echo -e "[\033[1;33m${redis_node_ip}:${redis_node_port}\033[m]\tUsed: \033[0;32;32m$used_memory_rss_human\033[m\tMax: \033[0;32;32m$maxmemory_human\033[m\tSystem: \033[0;32;32m$total_system_memory_human\033[m"        
+                echo -e "[\033[1;33m${redis_node_ip}:${redis_node_port}\033[m]\tUsed: \033[0;32;32m$used_memory_rss_human\033[m\tMax: \033[0;32;32m$maxmemory_human\033[m\tSystem: \033[0;32;32m$total_system_memory_human\033[m"
             fi
         fi
     done
