@@ -58,10 +58,10 @@ fi
 if test -z "$redis_nodes"; then
     # Standlone（非集群）
     if test -z "$REDIS_PASSWORD"; then
-        $REDIS_CLI -h $REDIS_IP -p $REDIS_PORT FLUSHALL
+        $REDIS_CLI -h $REDIS_IP -p $REDIS_PORT FLUSHALL ASYNC
         $REDIS_CLI -h $REDIS_IP -p $REDIS_PORT BGREWRITEAOF
     else
-        $REDIS_CLI --no-auth-warning -a "$REDIS_PASSWORD" -h $REDIS_IP -p $REDIS_PORT FLUSHALL
+        $REDIS_CLI --no-auth-warning -a "$REDIS_PASSWORD" -h $REDIS_IP -p $REDIS_PORT FLUSHALL ASYNC
         $REDIS_CLI --no-auth-warning -a "$REDIS_PASSWORD" -h $REDIS_IP -p $REDIS_PORT BGREWRITEAOF
     fi
 else
@@ -75,10 +75,10 @@ else
                 # clear
                 echo -e "Clearing \033[1;33m${redis_node_ip}:${redis_node_port}\033[m ..."
                 if test -z "$REDIS_PASSWORD"; then
-                    result=`$REDIS_CLI -h $redis_node_ip -p $redis_node_port FLUSHALL`
+                    result=`$REDIS_CLI -h $redis_node_ip -p $redis_node_port FLUSHALL ASYNC`
                     $REDIS_CLI -h $redis_node_ip -p $redis_node_port BGREWRITEAOF
                 else
-                    result=`$REDIS_CLI --no-auth-warning -a "$REDIS_PASSWORD" -h $redis_node_ip -p $redis_node_port FLUSHALL`
+                    result=`$REDIS_CLI --no-auth-warning -a "$REDIS_PASSWORD" -h $redis_node_ip -p $redis_node_port FLUSHALL ASYNC`
                     $REDIS_CLI --no-auth-warning -a "$REDIS_PASSWORD" -h $redis_node_ip -p $redis_node_port BGREWRITEAOF
                 fi
 
