@@ -69,11 +69,11 @@ else
             if test ! -z "$redis_node_ip" -a ! -z "$redis_node_port"; then
                 echo -e "Checking \033[1;33m${redis_node_ip}:${redis_node_port}\033[m ..."
                 if test -z "$REDIS_PASSWORD"; then
-                    $REDIS_CLI -h $redis_node_ip -p $redis_node_port SCAN 0 COUNT 10
+                    $REDIS_CLI -h $redis_node_ip -p $redis_node_port -c SETEX KKKKK0123056789:$index 1 X
                 else
                     $REDIS_CLI --no-auth-warning -a "$REDIS_PASSWORD" -h $redis_node_ip -p $redis_node_port -c SETEX KKKKK0123056789:$index 1 X
-                    index=$(($index+1))
                 fi
+                index=$(($index+1))
             fi
         fi
     done
