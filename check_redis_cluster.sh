@@ -60,6 +60,7 @@ if test -z "$redis_nodes"; then
     fi
 else
     # Cluster（集群）
+    index=0
     for redis_node in $redis_nodes;
     do
         if test ! -z "$redis_node"; then
@@ -70,7 +71,8 @@ else
                 if test -z "$REDIS_PASSWORD"; then
                     $REDIS_CLI -h $redis_node_ip -p $redis_node_port SCAN 0 COUNT 10
                 else
-                    $REDIS_CLI --no-auth-warning -a "$REDIS_PASSWORD" -h $redis_node_ip -p $redis_node_port SCAN 0 COUNT 10
+                    $REDIS_CLI --no-auth-warning -a "$REDIS_PASSWORD" -h $redis_node_ip -p $redis_node_port -c SETEX KKKKK0123056789:$index 1 X
+                    index=$(($index+1))
                 fi
             fi
         fi
