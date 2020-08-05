@@ -1,35 +1,73 @@
 #!/bin/bash
 # Writed by yijian on 2019/8/29
 # 查看redis队列长度工具，
-# 支持同时查看多个redis或redis集群的多个队列
-# 队列Key的格式要求为：
-# 前缀 + 下标，下标为从0开始的递增整数值。
-
-# 访问redis的密码，如果没有保持为空
-REDIS_PASSWORD=""
-# 如果redis-cli所在目录不在PATH中，则需要添加或显示指定
-REDIS_CLI=redis-cli
-
-# 要查询的 redis 或 redis集群数组
-REDIS_CLUSTERS=(
-    "127.0.0.1:6379"
-    "127.0.0.1:6380"
-)
-
-# 要查询的 redis 队列数组，
-# “/”前面是前缀，“/”后是队列数，
-# 第行一组队列。
-queues=(
-    "keyprefix1:/9"
-    "keyprefix2:/11"
-    "keyprefix3:/1"
-)
+# 支持同时查看多个redis或redis集群的多个队列。
+#
+# 注意，应当以source方式（或点“.”方式）调用本脚本，如：
+# 1）source /usr/local/bin/query_redis_queue.sh
+# 2）. /usr/local/bin/query_redis_queue.sh
+#
+# 在使用之前，必须设置好三个shell变量（注意不是环境变量）：
+# 1）REDIS_PASSWORD 可不设置，shell字符串值。指定访问redis的密码，没设置或值为空时表示密码为空。
+# 2）REDIS_CLUSTERS 必须设置，shell数组值。用于指定查询的redis或redis集群，如果是多套redis则密码得相同。
+# 3）REDIS_QUEUES 必须设置，shell数组值。用于指定查询的redis队列，队列key的前缀和数量以斜杠“/”分隔。
+#
+# REDIS_CLUSTERS示例1（单套redis集群）：
+# export REDIS_CLUSTERS=(127.0.0.1:6379)
+#
+# REDIS_CLUSTERS示例2（多套redis集群）：
+# export REDIS_CLUSTERS=(127.0.0.1:2021 127.0.0.1:3021)
+#
+# REDIS_QUEUES示例1（单组队列，队列key的前缀为kprefix，队列数9个）：
+# export REDIS_QUEUES=(kprefix:/9)
+#
+# REDIS_QUEUES示例2（多组队列）
+# export REDIS_QUEUES=(kprefix1:/9 kprefix2:/11 kprefix3:/6)
 
 # 检查 redis-cli 是否可用
-which "$REDIS_CLI" > /dev/null 2>&1
+# 依赖redis的命令行工具redis-cli
+# 一般建议将redis-cli放在/usr/local/bin目录下
+REDIS_CLI=""
+if test -x /usr/local/bin/redis-cli; then
+  REDIS_CLI=/usr/local/bin/redis-cli
+else
+  REDIS_CLI=redis-cli
+fi
+which $REDIS_CLI 2>/dev/null
 if test $? -ne 0; then
-    echo "\"redis-cli\" is not found or not executable."
-    exit 1
+  echo "\`redis-cli\` is not exists or not executable."
+  echo "You can copy \`redis-cli\` to the directory \`/usr/local/bin\`."
+  exit 1
+fi
+
+# 检查是否设置了环境变量 REDIS_CLUSTERS
+if test -z "$REDIS_CLUSTERS"; then
+  echo "Environment variable \`REDIS_CLUSTERS\` is not set or is empty."
+  exit 1
+fi
+if test ${#REDIS_CLUSTERS[@]} -eq 0; then
+  # 不是数组或者是空数组
+  echo "Environment variable \`REDIS_CLUSTERS\` have a non-array value or an empty value."
+  echo "Example1:"
+  echo "export REDIS_CLUSTERS=(127.0.0.1:6379)"
+  echo "Example2:"
+  echo "export REDIS_CLUSTERS=(127.0.0.1:2021 127.0.0.1:3021)"
+  exit 1
+fi
+
+# 检查是否设置了环境变量 REDIS_QUEUES
+if test -z "$REDIS_QUEUES"; then
+  echo "Environment variable \`REDIS_QUEUES\` is not set or is empty."
+  exit 1
+fi
+if test ${#REDIS_QUEUES[@]} -eq 0; then
+  # 不是数组或者是空数组
+  echo "Environment variable \`REDIS_QUEUES\` have a non-array value or an empty value."
+  echo "Example1:"
+  echo "export REDIS_QUEUES=(kprefix:/9)"
+  echo "Example2:"
+  echo "export REDIS_QUEUES=(kprefix1:/9 kprefix2:/11 kprefix3:/6)"
+  exit 1
 fi
 
 function view_all_clusters()
@@ -42,7 +80,7 @@ function view_all_clusters()
         echo -e "\033[1;33m====================\033[m"
         echo -e "[\033[1;33m$REDIS_IP:$REDIS_PORT $DATE\033[m]"
 
-        for queue in ${queues[@]}
+        for queue in ${REDIS_QUEUES[@]}
         do
             total_qlen=0 # 所有队列加起来的总长度
             qnum=0 # 单个队列长度
