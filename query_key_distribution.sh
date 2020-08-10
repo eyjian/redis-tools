@@ -30,6 +30,7 @@ REDIS_IP=$3
 REDIS_PORT=$4
 REDIS_PASSOWRD="$5"
 
+declare -A map
 for ((i=0; i<$KEY_NUMBER; ++i))
 do
   key="${KEY_PREFIX}${i}"
@@ -39,9 +40,21 @@ do
     err=`echo "$str" | awk '{printf("%s",$1)}'`
   fi
   if test -z "$str" -o "$err" != "MOVED"; then
-    echo -e "[${KEY_PREFIX}\033[1;33m${i}\033[m] slot=>\033[1;33m$slot\033[m node=>\033[1;33m$REDIS_IP:$REDIS_PORT\033[m"
+    node="$REDIS_IP:$REDIS_PORT"
   else
-    node=`echo "$str" | awk '{printf("%s",$3)}'`
-    echo -e "[${KEY_PREFIX}\033[1;33m${i}\033[m] slot=>\033[1;33m$slot\033[m node=>\033[1;33m$node\033[m"
+    node=`echo "$str" | awk '{printf("%s",$3)}'`    
+  fi
+  echo -e "[${KEY_PREFIX}\033[1;33m${i}\033[m] slot=>\033[1;33m$slot\033[m node=>\033[1;33m$node\033[m"
+  if test -z ${map[$node]}; then
+    map[$node]="$key"
+  else
+    map[$node]="${map[$node]},$key"
   fi
 done
+
+if test ${#map[@]} -gt 0; then
+  printf "\n================\n"
+  for node in ${!map[@]};do
+    printf "\033[1;33m%15s\033[m => %s\n" "$node" "${map[$node]}"
+  done
+fi
