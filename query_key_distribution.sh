@@ -19,8 +19,8 @@ fi
 # 参数检查
 if test $# -ne 4 -a $# -ne 5; then
   echo "Usage: `basename $0` key_prefix key_number redis_ip redis_port [redis_password]"
-  echo "Example1: `basename $0` k: 10 127.0.0.1 6379"
-  echo "Example2: `basename $0` k: 10 127.0.0.1 6379 password123456"
+  echo "Example1: `basename $0` 'k:' 10 '127.0.0.1' 6379"
+  echo "Example2: `basename $0` 'k:' 10 '127.0.0.1' 6379 'password123456'"
   exit 1
 fi
 
@@ -30,7 +30,8 @@ REDIS_IP=$3
 REDIS_PORT=$4
 REDIS_PASSOWRD="$5"
 
-declare -A map
+declare -A map1
+declare -A map2
 for ((i=0; i<$KEY_NUMBER; ++i))
 do
   key="${KEY_PREFIX}${i}"
@@ -45,16 +46,18 @@ do
     node=`echo "$str" | awk '{printf("%s",$3)}'`    
   fi
   echo -e "[${KEY_PREFIX}\033[1;33m${i}\033[m] slot=>\033[1;33m$slot\033[m node=>\033[1;33m$node\033[m"
-  if test -z ${map[$node]}; then
-    map[$node]="$key/$slot"
+  if test -z ${map1[$node]}; then
+    map1[$node]="$key/$slot"
+    map2[$node]=1
   else
-    map[$node]="${map[$node]},$key/$slot"
+    map1[$node]="${map1[$node]},$key/$slot"
+    map2[$node]=$((${map2[$node]} + 1))
   fi
 done
 
-if test ${#map[@]} -gt 0; then
+if test ${#map1[@]} -gt 0; then
   printf "\n================\n"
-  for node in ${!map[@]};do
-    printf "\033[1;33m%15s\033[m => %s\n" "$node" "${map[$node]}"
+  for node in ${!map1[@]};do
+    printf "\033[1;33m%15s\033[m => (\033[1;33m%d\033[m)%s\n" "$node" ${map2[$node]} "${map1[$node]}"
   done
 fi
