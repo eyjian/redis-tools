@@ -47,7 +47,7 @@ function get_node_id()
   # 得到对应的 nodeid
   $REDIS_CLI --raw --no-auth-warning -a "$REDIS_PASSOWRD" \
 -h $node_ip -p $node_port \
-CLUSTER NODES | awk -v node=$node '{if ($2==node) printf("%s",$1);}'
+CLUSTER NODES | awk -v node=$node -F'[ @]' '{if ($2==node) printf("%s",$1);}'
 }
 
 SRC_NODE_ID="`get_node_id $SRC_NODE`"
@@ -57,8 +57,17 @@ DEST_NODE_ID="`get_node_id $DEST_NODE`"
 DEST_NODE_IP="`echo $DEST_NODE|cut -d':' -f1`"
 DEST_NODE_PORT=`echo $DEST_NODE|cut -d':' -f2`
 
-echo -e "\033[1;33mSource\033[m node: $SRC_NODE_IP:$SRC_NODE_PORT"
-echo -e "\033[1;33mDestition\033[m node: $DEST_NODE_IP:$DEST_NODE_PORT"
+echo -e "\033[1;33mSource\033[m node: $SRC_NODE_IP:$SRC_NODE_PORT/$SRC_NODE_ID"
+echo -e "\033[1;33mDestition\033[m node: $DEST_NODE_IP:$DEST_NODE_PORT/$DEST_NODE_ID"
+if test -z "$SRC_NODE_ID"; then
+  echo -e "Can not get the source node ID of \033[1;33m$SRC_NODE\033[m"
+  exit 1
+fi
+if test -z "$DEST_NODE_ID"; then
+  echo -e "Can not get the destition node ID of \033[1;33m$DEST_NODE\033[m"
+  exit 1
+fi
+
 echo -en "Confirm to continue? [\033[1;33myes\033[m/\033[1;33mno\033[m]"
 read -r -p " " input
 if test "$input" != "yes"; then
@@ -68,7 +77,7 @@ echo "........."
 
 # 目标节点上执行 IMPORTING 操作
 # 如果 $SLOT 已在目标节点，则执行时报错“ERR I'm already the owner of hash slot 1987”
-echo -e "\033[1;33mImporting\033[m $SLOT from $SRC_NODE to $DEST_NODE ..."
+echo -e "\033[1;33mImporting\033[m $SLOT from $SRC_NODE($SRC_NODE_ID) to $DEST_NODE($DEST_NODE_ID) ..."
 err=`$REDIS_CLI --raw --no-auth-warning -a "$REDIS_PASSOWRD" \
 -h $DEST_NODE_IP -p $DEST_NODE_PORT \
 CLUSTER SETSLOT $SLOT IMPORTING $SRC_NODE_ID`
@@ -79,7 +88,7 @@ fi
 
 # 源节点上执行 MIGRATING 操作
 # 如果 $SLOT 并不在源节点上，则执行时报错“ERR I'm not the owner of hash slot 1987”
-echo -e "\033[1;33mMigrating\033[m $SLOT from $SRC_NODE to $DEST_NODE ..."
+echo -e "\033[1;33mMigrating\033[m $SLOT from $SRC_NODE($SRC_NODE_ID) to $DEST_NODE($DEST_NODE_ID) ..."
 err=`$REDIS_CLI --raw --no-auth-warning -a "$REDIS_PASSOWRD" \
 -h $SRC_NODE_IP -p $SRC_NODE_PORT \
 CLUSTER SETSLOT $SLOT MIGRATING $DEST_NODE_ID`
