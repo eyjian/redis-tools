@@ -113,20 +113,21 @@ if test "$input" = "yes"; then
   do
     # 在源节点上执行：
     # 借助命令“CLUSTER GETKEYSINSLOT”和命令“MIGRATE”迁移已有的keys
-    keys="`$REDIS_CLI --raw --no-auth-warning -a '$REDIS_PASSOWRD' \
+    keys="`$REDIS_CLI --raw --no-auth-warning -a "$REDIS_PASSOWRD" \
 -h $SRC_NODE_IP -p $SRC_NODE_PORT \
 CLUSTER GETKEYSINSLOT $SLOT $batch | tr '\n' ' ' | xargs`"
     if test -z "$keys"; then
       if test $first -eq 1; then
         echo -e "No any keys to migrate in slot://$SLOT"
       else
-        echo -e "Finished migrating all keys ($num_keys) in slot://$SLOT"
+        echo -e "Finished migrating all keys (\033[1;33m$num_keys\033[m) in slot://$SLOT"
       fi
       break
     fi
     first=0
     n=`echo "$keys" | tr -cd ' ' | wc -c`
     num_keys=$(($num_keys + $n))
+    #echo -e "(\033[1;33m$n\033[m)$keys"
 
     # 在源节点上执行命令“MIGRATE”迁移到目标节点
     # MIGRATE returns OK on success,
@@ -145,6 +146,7 @@ REPLACE AUTH "$REDIS_PASSOWRD" KEYS $keys`
     if test "X$err" = "XNOKEY"; then
       break
     fi
+    echo -e "\033[1;33m$n\033[m keys migratd"
   done
 fi
 
