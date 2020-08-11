@@ -1,12 +1,20 @@
 #!/bin/sh
 # Writed by yijian on 2020/8/10
-# 迁移 slot 工具，一次只能迁移一个
+# 迁移 slot 工具，但一次只能迁移一个 slot
 #
 # 使用时，需要指定如下几个参数：
 # 1）参数1：必选参数，用于指定被迁移的 slot
 # 2）参数2：必选参数，用于指定源节点（格式为：ip:port）
 # 3）参数3：必选参数，用于指定目标节点（格式为：ip:port）
 # 6）参数4：可选参数，用于指定访问 redis 的密码
+#
+# 使用示例（将2020从10.9.12.8:1383迁移到10.9.12.9:1386）：
+# move_redis_slot.sh 2020 10.9.12.8:1383 10.9.12.9:1386
+#
+# 执行本脚本时，有两个“确认”，
+# 第一个“确认”是提示参数是否正确，
+# 第二个“确认”是提示是否迁移已有的keys，
+# 如果输入非yes则只迁移slot，不迁移已有keys。
 
 # 确保redis-cli可用
 REDIS_CLI=${REDIS_CLI:-redis-cli}
@@ -131,30 +139,21 @@ REPLACE AUTH "$REDIS_PASSOWRD" KEYS $keys`
   done
 fi
 
-# 在目标节点上执行 NODE 操作
-echo -n "Node destition://$DEST_NODE_IP:$DEST_NODE_PORT: "
-err=`$REDIS_CLI --raw --no-auth-warning -a "$REDIS_PASSOWRD" \
--h $DEST_NODE_IP -p $DEST_NODE_PORT \
-CLUSTER SETSLOT $SLOT NODE $DEST_NODE_ID`
-echo -e "\033[1;33m$err\033[m"
 
-exit 0
-# 在源节点上执行 NODE 操作
-echo -n "Node source://$SRC_NODE_IP:$SRC_NODE_PORT: "
-$REDIS_CLI --raw --no-auth-warning -a "$REDIS_PASSOWRD" -h $SRC_NODE_IP -p $SRC_NODE_PORT \
-CLUSTER SETSLOT $SLOT NODE $DEST_NODE_ID
-
-exit 0
 # 取得所有 master 节点
 nodes=(`$REDIS_CLI --raw --no-auth-warning -a "$REDIS_PASSOWRD" -h $DEST_NODE_IP -p $DEST_NODE_PORT \
 CLUSTER NODES | awk '{if (match($3,"master")) printf("%s\n",$2);}'`)
 
 # 在所有 master 节点上执行 NODE 操作
+# 实际上，只可对源节点和目标节点执行 NODE 操作，
+# 新的配置会自动在集群中传播。
+echo "........."
 for node in ${nodes[*]}; do
   node_ip="`echo $node|cut -d':' -f1`"
   node_port=`echo $node|cut -d':' -f2`
-  echo -e "NODE: $node_ip:$node_port"
-  $REDIS_CLI --raw --no-auth-warning -a "$REDIS_PASSOWRD" \
+  echo -en "NODE: $node_ip:$node_port "
+  err=`$REDIS_CLI --raw --no-auth-warning -a "$REDIS_PASSOWRD" \
 -h $node_ip -p $node_port \
-CLUSTER SETSLOT $SLOT NODE $DEST_NODE_ID
+CLUSTER SETSLOT $SLOT NODE $DEST_NODE_ID`
+  echo -e "\033[1;33m$err\033[m"
 done
