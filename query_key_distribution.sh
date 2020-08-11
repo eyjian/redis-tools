@@ -46,9 +46,9 @@ do
   fi
   echo -e "[${KEY_PREFIX}\033[1;33m${i}\033[m] slot=>\033[1;33m$slot\033[m node=>\033[1;33m$node\033[m"
   if test -z ${map[$node]}; then
-    map[$node]="$key"
+    map[$node]="$key/$slot"
   else
-    map[$node]="${map[$node]},$key"
+    map[$node]="${map[$node]},$key/$slot"
   fi
 done
 
