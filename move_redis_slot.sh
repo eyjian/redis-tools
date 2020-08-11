@@ -57,8 +57,8 @@ DEST_NODE_ID="`get_node_id $DEST_NODE`"
 DEST_NODE_IP="`echo $DEST_NODE|cut -d':' -f1`"
 DEST_NODE_PORT=`echo $DEST_NODE|cut -d':' -f2`
 
-echo -e "\033[1;33mSource\033[m node: $SRC_NODE_IP:$SRC_NODE_PORT/$SRC_NODE_ID"
-echo -e "\033[1;33mDestition\033[m node: $DEST_NODE_IP:$DEST_NODE_PORT/$DEST_NODE_ID"
+echo -e "\033[1;33mSource\033[m node: $SRC_NODE_IP:$SRC_NODE_PORT($SRC_NODE_ID)"
+echo -e "\033[1;33mDestition\033[m node: $DEST_NODE_IP:$DEST_NODE_PORT($DEST_NODE_ID)"
 if test -z "$SRC_NODE_ID"; then
   echo -e "Can not get the source node ID of \033[1;33m$SRC_NODE\033[m"
   exit 1
