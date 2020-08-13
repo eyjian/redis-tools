@@ -102,7 +102,7 @@ echo -en "Migrate keys in slot://$SLOT? [\033[1;33myes\033[m/\033[1;33mno\033[m]
 read -r -p " " input
 if test "$input" = "yes"; then
   first=1 # 是否第一轮keys迁移操作
-  batch=100 # 一次批量迁移的keys数
+  batch=1000 # 一次批量迁移的keys数
   timeout_ms=60000 # 超时时长（单位：毫秒）
   destination_db=0 # 对于redis集群，取值总是为0
   num_keys=0
