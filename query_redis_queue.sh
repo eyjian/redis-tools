@@ -13,16 +13,16 @@
 # 3）REDIS_QUEUES 必须设置，shell数组值。用于指定查询的redis队列，队列key的前缀和数量以斜杠“/”分隔。
 #
 # REDIS_CLUSTERS示例1（单套redis集群）：
-# export REDIS_CLUSTERS=(127.0.0.1:6379)
+# REDIS_CLUSTERS=(127.0.0.1:6379)
 #
 # REDIS_CLUSTERS示例2（多套redis集群）：
-# export REDIS_CLUSTERS=(127.0.0.1:2021 127.0.0.1:3021)
+# REDIS_CLUSTERS=(127.0.0.1:2021 127.0.0.1:3021)
 #
 # REDIS_QUEUES示例1（单组队列，队列key的前缀为kprefix，队列数9个）：
-# export REDIS_QUEUES=(kprefix:/9)
+# REDIS_QUEUES=(kprefix:/9)
 #
 # REDIS_QUEUES示例2（多组队列）
-# export REDIS_QUEUES=(kprefix1:/9 kprefix2:/11 kprefix3:/6)
+# REDIS_QUEUES=(kprefix1:/9 kprefix2:/11 kprefix3:/6)
 
 # 检查 redis-cli 是否可用
 # 依赖redis的命令行工具redis-cli
