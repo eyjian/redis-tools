@@ -33,7 +33,7 @@ if test -x /usr/local/bin/redis-cli; then
 else
   REDIS_CLI=redis-cli
 fi
-which $REDIS_CLI 2>/dev/null
+which $REDIS_CLI >/dev/null 1>&1
 if test $? -ne 0; then
   echo "\`redis-cli\` is not exists or not executable."
   echo "You can copy \`redis-cli\` to the directory \`/usr/local/bin\`."
@@ -42,12 +42,12 @@ fi
 
 # 检查是否设置了环境变量 REDIS_CLUSTERS
 if test -z "$REDIS_CLUSTERS"; then
-  echo "Environment variable \`REDIS_CLUSTERS\` is not set or is empty."
+  echo "Shell variable \`REDIS_CLUSTERS\` is not set or is empty or is not an array."
   exit 1
 fi
 if test ${#REDIS_CLUSTERS[@]} -eq 0; then
   # 不是数组或者是空数组
-  echo "Environment variable \`REDIS_CLUSTERS\` have a non-array value or an empty value."
+  echo "Shell variable \`REDIS_CLUSTERS\` have a non-array value or an empty value."
   echo "Example1:"
   echo "export REDIS_CLUSTERS=(127.0.0.1:6379)"
   echo "Example2:"
@@ -57,12 +57,12 @@ fi
 
 # 检查是否设置了环境变量 REDIS_QUEUES
 if test -z "$REDIS_QUEUES"; then
-  echo "Environment variable \`REDIS_QUEUES\` is not set or is empty."
+  echo "Shell variable \`REDIS_QUEUES\` is not set or is empty or is not an array."
   exit 1
 fi
 if test ${#REDIS_QUEUES[@]} -eq 0; then
   # 不是数组或者是空数组
-  echo "Environment variable \`REDIS_QUEUES\` have a non-array value or an empty value."
+  echo "Shell variable \`REDIS_QUEUES\` have a non-array value or an empty value."
   echo "Example1:"
   echo "export REDIS_QUEUES=(kprefix:/9)"
   echo "Example2:"
