@@ -87,15 +87,21 @@ else
                     items=(`$REDIS_CLI --no-auth-warning -a "$redis_password" -h $redis_node_ip -p $redis_node_port INFO MEMORY 2>&1 | tr '\r' ' '`)
                 fi
 
+                used_memory_human=0
                 used_memory_rss_human=0
+                used_memory_peak_human=0
                 maxmemory_human=0
                 total_system_memory_human=0
                 for item in "${items[@]}"
                 do
                     eval $(echo "$item" | awk -F[\:] '{ printf("name=%s\nvalue=%s\n",$1,$2) }')
 
-                    if test "$name" = "used_memory_rss_human"; then
+                    if test "$name" = "used_memory_human"; then
+                        used_memory_human=$value
+                    elif test "$name" = "used_memory_rss_human"; then
                         used_memory_rss_human=$value
+                    elif test "$name" = "used_memory_peak_human"; then
+                        used_memory_peak_human=$value
                     elif test "$name" = "maxmemory_human"; then
                         maxmemory_human=$value
                     elif test "$name" = "total_system_memory_human"; then
@@ -103,7 +109,7 @@ else
                     fi
                 done
 
-                echo -e "[\033[1;33m${redis_node_ip}:${redis_node_port}\033[m]\tUsed: \033[0;32;32m$used_memory_rss_human\033[m\tMax: \033[0;32;32m$maxmemory_human\033[m\tSystem: \033[0;32;32m$total_system_memory_human\033[m"
+                echo -e "[\033[1;33m${redis_node_ip}:${redis_node_port}\033[m]\tVIRT: \033[0;32;32m$used_memory_human\033[m\tRSS: \033[0;32;32m$used_memory_rss_human\033[m\tPeak: \033[0;32;32m$used_memory_peak_human\033[m\tMax: \033[0;32;32m$maxmemory_human\033[m\tSystem: \033[0;32;32m$total_system_memory_human\033[m"
             fi
         fi
     done
