@@ -9,6 +9,7 @@
 # 使用帮助函数
 function usage()
 {
+  echo "Stop redis-server process listen on the given port."
   echo "Usage: `basename $0` redis-port"
   echo "Example: `basename $0` 6379"
 }
@@ -27,10 +28,19 @@ REDIS_PORT=$1
 pid=`ps -f -C redis-server | awk -v port=$REDIS_PORT -F'[ :]*' '{ if ($12==port || $13==port) print $2 }'`
 if test -z "$pid"; then
   echo "redis-server[$REDIS_PORT] is not running"
-elif test $pid -eq 0; then
-  echo "redis-server[$REDIS_PORT]'s pid is 0"
 else
-  echo "kill $pid (redis-server[$REDIS_PORT])"
-  #kill -0 $pid
-  kill $pid
+  # 检查 $pid 是否为数字值，
+  # 它可能是“12 34”这样的值，即包含了两个 pid。
+  $(expr $pid + 0 > /dev/null 2>&1)
+  if test $? -ne 0; then
+    echo "Can not kill: \"$pid\""
+  else
+    if test "$pid" -eq 0; then
+      echo "redis-server[$REDIS_PORT]'s pid is 0"
+    else
+      echo "kill $pid (redis-server[$REDIS_PORT])"
+      #kill -0 $pid
+      kill $pid
+    fi
+  fi
 fi
