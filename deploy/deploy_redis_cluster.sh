@@ -23,10 +23,11 @@
 # 可在/tmp目录找到process_monitor.sh的运行日志，当对应端口的进程不在时，5秒内即会重启对应端口的进程。
 #
 # 运行参数：
-# 1）参数1：SSH端口
-# 2）参数2：安装用户
-# 3）参数3：安装用户密码
-# 4）参数4：安装目录（要求安装用户用读取权限）
+# 1）参数1：SSH端口（必选参数）
+# 2）参数2：安装用户（必选参数）
+# 3）参数3：安装用户密码（必选参数）
+# 4）参数4：安装目录（必选参数，要求安装用户用读取权限）
+# 5）参数5：redis 密码（可选参数）
 #
 # 前置条件（可借助批量工具 mooon_ssh 和 mooon_upload 完成）：
 # 1）安装用户已经创建好
@@ -90,12 +91,13 @@ redis_node_array=()
 # 用法
 function usage()
 {
-    echo -e "\033[1;33mUsage\033[m: `basename $0` \033[0;32;32mssh-port\033[m install-user \033[0;32;32minstall-user-password\033[m install-dir"
-    echo -e "\033[1;33mExample\033[m: `basename $0` \033[0;32;32m22\033[m redis \033[0;32;32mredis^1234\033[m /usr/local/redis-4.0.11"
+    echo -e "\033[1;33mUsage\033[m: `basename $0` \033[0;32;32mssh-port\033[m install-user \033[0;32;32minstall-user-password\033[m install-dir [redis-password]"
+    echo -e "\033[1;33mExample1\033[m: `basename $0` \033[0;32;32m22\033[m redis \033[0;32;32mredis^1234\033[m /usr/local/redis"
+    echo -e "\033[1;33mExample2\033[m: `basename $0` \033[0;32;32m22\033[m redis \033[0;32;32mredis^1234\033[m /usr/local/redis \033[0;32;32m'password123456'\033[m"
 }
 
 # 需要指定五个参数
-if test $# -ne 4; then
+if test $# -lt 4 -o $# -gt 5; then
     usage
     echo ""
     exit 1
@@ -105,6 +107,7 @@ ssh_port="$1"
 install_user="$2"
 install_user_password="$3"
 install_dir="$4"
+redis_password="$5"
 echo -e "[ssh port] \033[1;33m$ssh_port.\033[m"
 echo -e "[install user] \033[1;33m$install_user.\033[m"
 echo -e "[install directory] \033[1;33m$install_dir.\033[m"
@@ -519,8 +522,13 @@ else
     done
 
     # 创建 redis 集群（create redis cluster by redis-cli）
-    echo "$REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1"
-    $REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1
+    if test -z "$redis_password"; then
+        echo "$REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1"
+        $REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1
+    else
+        echo "$REDIS_CLI --no-auth-warning -a \"$redis_password\" --cluster create $redis_nodes_str --cluster-replicas 1"
+        $REDIS_CLI --no-auth-warning -a "$redis_password" --cluster create $redis_nodes_str --cluster-replicas 1
+    fi
     echo -e "Exit now.\n"
     exit 0
 fi
