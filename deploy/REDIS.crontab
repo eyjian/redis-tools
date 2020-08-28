@@ -1,13 +1,19 @@
 # Added by yijian on 2018/8/27 (eyjian@qq.com)
-# redis的crontab进程监控设置
-# 使用前，请先设置好REDIS_HOME、REDIS_PORT1和REDIS_PORT2三者的值
-# REDIS_HOME指定redis的安装目录，REDIS_PORT指定redis的服务端口
+# redis 的 crontab 进程监控设置
+# 使用前，请先设置好REDIS_HOME、REDIS_PORT1 和 REDIS_PORT2 三者的值
+#
+# REDIS_HOME 指定 redis 的安装目录，REDIS_PORT 指定 redis 的服务端口
+# REDIS_LOG_SIZE 用于指定 redis 日志文件大小，
+# 注意 redis 并不自动滚动日志文件，也可通过 rsyslogd 实现日志文件滚动。
 REDIS_HOME=/usr/local/redis
-REDIS_PORT1=6379
-REDIS_PORT2=6380
-# redis
-* * * * * /usr/local/bin/process_monitor.sh "$REDIS_HOME/bin/redis-server $REDIS_PORT1" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$REDIS_PORT1.conf"
-* * * * * /usr/local/bin/process_monitor.sh "$REDIS_HOME/bin/redis-server $REDIS_PORT2" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$REDIS_PORT2.conf"
-# rotate redis log
-0 2 * * * log=$REDIS_HOME/log/redis-$REDIS_PORT1.log;if test -f $log; then if test `ls -l $log|cut -d' ' -f5` -gt 104857600; then mv $log $log.old ; fi fi
-1 2 * * * log=$REDIS_HOME/log/redis-$REDIS_PORT2.log;if test -f $log; then if test `ls -l $log|cut -d' ' -f5` -gt 104857600; then mv $log $log.old ; fi fi
+REDIS_LOG_SIZE=1073741824
+REDIS_PORT6379=6379
+REDIS_PORT6380=6380
+
+# REDIS_PORT6379
+* * * * * /usr/local/bin/process_monitor.sh "$REDIS_HOME/bin/redis-server $REDIS_PORT6379" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$REDIS_PORT6379.conf"
+0 * * * * log=$REDIS_HOME/log/redis-$REDIS_PORT6379.log;if test -f $log; then if test `ls -l $log|cut -d' ' -f5` -gt $REDIS_LOG_SIZE; then mv $log $log.old ; fi fi
+
+# REDIS_PORT6380
+* * * * * /usr/local/bin/process_monitor.sh "$REDIS_HOME/bin/redis-server $REDIS_PORT6380" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$REDIS_PORT6380.conf"
+0 * * * * log=$REDIS_HOME/log/redis-$REDIS_PORT6380.log;if test -f $log; then if test `ls -l $log|cut -d' ' -f5` -gt $REDIS_LOG_SIZE; then mv $log $log.old ; fi fi

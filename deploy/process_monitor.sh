@@ -39,8 +39,21 @@
 # 均要求使用绝对路径，即必须以“/”打头的路径。
 
 # 需要指定个数的命令行参数
-# 参数1：被监控的进程名（可以包含命令行参数，而且必须包含绝对路径方式）
+# 参数1：被监控的进程名（ps命令看到的进程名）
 # 参数2：重启被监控进程的脚本（进程不能以相对路径的方式启动）
+#
+# 以重启 redis 为例，假设 redis-server 所在路径为 /usr/local/redis/bin，则 crontab 可设置成如下：
+# PMONITOR=/usr/local/bin/process_monitor.sh
+# REDIS_HOME=/usr/local/redis
+# * * * * * $PMONITOR "$REDIS_HOME/bin/redis-server" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis.conf"
+#
+# 如果同一用户下启动了多个 redis-server 进程，则需要设置成如下：
+# PORT1=6379
+# PORT2=6380
+# * * * * * $PMONITOR "$REDIS_HOME/bin/redis-server $PORT1" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$PORT1.conf"
+# * * * * * $PMONITOR "$REDIS_HOME/bin/redis-server $PORT2" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$PORT2.conf"
+# 在确定对应的 redis-server 进程是否存在时，除了严格对比 $REDIS_HOME/bin/redis-server 外，
+# 还会进一步对比是否有匹配（部分匹配即可） PORT1 或 PORT2 的参数。
 if test $# -ne 2; then
     printf "\033[1;33musage: $0 process_cmdline restart_script\033[m\n"
     printf "\033[1;33mexample: /usr/local/bin/process_monitor.sh \"/usr/sbin/rinetd\" \"/usr/sbin/rinetd\"\033[m\n"
@@ -261,7 +274,7 @@ fi
 while true; do
     self_count=`ps -C $self_name h -o euid,args| awk 'BEGIN { num=0; } { if (($1==uid) && ($3==self_full_filepath) && match($0, self_cmdline)) {++num;}} END { printf("%d",num); }' uid=$uid self_full_filepath=$self_full_filepath self_cmdline="$self_cmdline"`
     if test $ONLY_TEST -eq 1; then
-        log "self_count: $self_count\n"
+        log "process_name: $process_name, self_name: $self_name, self_count: $self_count\n"
     fi
     if test ! -z "$self_count"; then
         if test $self_count -gt 2; then
@@ -286,21 +299,21 @@ while true; do
         fi
     else
         if test $process_filetype -eq 0; then # 可执行脚本文件
-            process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if (($1==uid) && match($0, process_match) && ($3==process_full_filepath)) ++num; } END { printf("%d",num); }' uid=$uid process_full_filepath=$process_full_filepath process_match="$process_match"`
+            process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if (($1==uid) && ($3==process_full_filepath)) { for (i=3;i<=NF;++i) if (match($i, process_match)) { ++num; break; } } } END { printf("%d",num); }' uid=$uid process_full_filepath=$process_full_filepath process_match="$process_match"`
         elif test $process_filetype -eq 1; then # 可执行程序文件
-            process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if (($1==uid) && match($0, process_match) && ($2==process_full_filepath)) ++num; } END { printf("%d",num); }' uid=$uid process_full_filepath=$process_full_filepath process_match="$process_match"`
+            process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if (($1==uid) && ($2==process_full_filepath)) { for (i=3;i<=NF;++i) if (match($i, process_match)) { ++num; break; } } } END { printf("%d",num); }' uid=$uid process_full_filepath=$process_full_filepath process_match="$process_match"`
         else # 未知类型文件
-            process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if (($1==uid) && match($0, process_match)) ++num; } END { printf("%d",num); }' uid=$uid process_match="$process_match"`
+            process_count=`ps -C $process_name h -o euid,args| awk 'BEGIN { num=0; } { if ($1==uid) { for (i=3;i<=NF;++i) if (match($i, process_match)) { ++num; break; } } } END { printf("%d",num); }' uid=$uid process_match="$process_match"`
         fi
     fi
 
     if test $ONLY_TEST -eq 1; then
-        log "process_count: $process_count\n"
+        log "process_name: $process_name, process_count: $process_count, process_match: $process_match\n"
     fi
     if test ! -z "$process_count"; then
         if test $process_count -lt 1; then
             # 执行重启脚本，要求这个脚本能够将指定的进程拉起来
-            log "restart \"$process_cmdline\"\n"
+            log "[$process_name/$process_count][process_match:$process_match]restart \"$process_cmdline\"\n"
             #sh -c "$restart_script" 2>&1 >> $log_filepath
             msg=`sh -c "$restart_script" 2>&1`
             if test ! -z "${msg}"; then

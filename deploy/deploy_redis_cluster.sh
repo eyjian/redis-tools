@@ -23,24 +23,19 @@
 # 可在/tmp目录找到process_monitor.sh的运行日志，当对应端口的进程不在时，5秒内即会重启对应端口的进程。
 #
 # 运行参数：
-# 参数1 SSH端口
-# 参数2 安装用户
-# 参数3 安装用户密码
-# 参数4 安装目录
+# 1）参数1：SSH端口
+# 2）参数2：安装用户
+# 3）参数3：安装用户密码
+# 4）参数4：安装目录（要求安装用户用读取权限）
 #
-# 前置条件（可借助批量工具mooon_ssh和mooon_upload完成）：
+# 前置条件（可借助批量工具 mooon_ssh 和 mooon_upload 完成）：
 # 1）安装用户已经创建好
 # 2）安装用户密码已经设置好
 # 3）安装目录已经创建好，并且目录的owner为安装用户
-# 4）执行本工具的机器上安装好了ruby，且版本号不低于2.0.0（仅redis-cli版本低于5.0时要求）
-# 5）执行本工具的机器上安装好了redis-X.Y.Z.gem，且版本号不低于redis-3.0.0.gem（仅redis-cli版本低于5.0时要求）
 #
-# 6）同目录下存在以下几个可执行文件：
-# 6.1）redis-server
-# 6.2）redis-cli
-# 6.3）redis-check-rdb
-# 6.4）redis-check-aof
-# 6.5）redis-trib.rb（仅redis-cli版本低于5.0时要求）
+# 4）同目录下存在以下两个可执行文件：
+# 4.1）redis-server
+# 4.2）redis-cli
 #
 # 7）同目录下存在以下两个配置文件：
 # 7.1）redis.conf
@@ -77,14 +72,8 @@ MOOON_SSH=mooon_ssh
 MOOON_UPLOAD=mooon_upload
 # redis-server
 REDIS_SERVER=$BASEDIR/redis-server
-# redis-cli（5.0版本开始支持创建集群，可取代redis-trib.rb）
+# redis-cli
 REDIS_CLI=$BASEDIR/redis-cli
-# 创建redis集群工具（如果REDIS_CLI为5.0版本，则该工具不需要）
-REDIS_TRIB=$BASEDIR/redis-trib.rb
-# redis-check-aof
-REDIS_CHECK_AOF=$BASEDIR/redis-check-aof
-# redis-check-rdb
-REDIS_CHECK_RDB=$BASEDIR/redis-check-rdb
 # redis.conf
 REDIS_CONF=$BASEDIR/redis.conf
 # redis-PORT.conf
@@ -136,40 +125,10 @@ fi
 redis_cli_ver=`$REDIS_CLI --version|awk -F[\ .] '{printf("%d\n",$2);}'`
 echo -e "redis-cli major version: \033[1;33m${redis_cli_ver}\033[m"
 
-# 如果低于5，则用REDIS_TRIB创建集群，否则直接用redis-cli创建集群
-# 如果不使用redis-trib.rb，则不依赖ruby和gem
+# 不支持低于 5.0 版本的 redis-cli
 if test $redis_cli_ver -lt 5; then
-    # 检查redis-trib.rb是否可用
-    which "$REDIS_TRIB" > /dev/null 2>&1
-    if test $? -eq 0; then
-        echo -e "Checking $REDIS_TRIB OK."
-    else
-        echo -e "$REDIS_TRIB \033[0;32;31mnot exists or not executable.\033[m"
-        echo -e "Exit now.\n"
-        exit 1
-    fi
-
-    # 检查ruby是否可用
-    which ruby > /dev/null 2>&1
-    if test $? -eq 0; then
-        echo -e "Checking ruby OK."
-    else
-        echo -e "ruby \033[0;32;31mnot exists or not executable.\033[m"
-        echo "https://www.ruby-lang.org."
-        echo -e "Exit now.\n"
-        exit 1
-    fi
-
-    # 检查gem是否可用
-    which gem > /dev/null 2>&1
-    if test $? -eq 0; then
-        echo -e "Checking gem OK."
-    else
-        echo -e "gem \033[0;32;31mnot exists or not executable.\033[m"
-        echo "https://rubygems.org/pages/download."
-        echo -e "Exit now.\n"
-        exit 1
-    fi
+    echo -e "Version of \033[0;32;31mredis-cli\033[m is lower than 5.0"
+    exit 1
 fi
 
 # 检查mooon_ssh是否可用
@@ -206,26 +165,6 @@ if test $? -eq 0; then
     echo -e "Checking $REDIS_SERVER OK."
 else
     echo -e "$REDIS_SERVER \033[0;32;31mnot exists or not executable.\033[m"
-    echo -e "Exit now.\n"
-    exit 1
-fi
-
-# 检查redis-check-aof是否可用
-which "$REDIS_CHECK_AOF" > /dev/null 2>&1
-if test $? -eq 0; then
-    echo -e "Checking $REDIS_CHECK_AOF OK."
-else
-    echo -e "$REDIS_CHECK_AOF \033[0;32;31mnot exists or not executable.\033[m"
-    echo -e "Exit now.\n"
-    exit 1
-fi
-
-# 检查redis-check-rdb是否可用
-which "$REDIS_CHECK_RDB" > /dev/null 2>&1
-if test $? -eq 0; then
-    echo -e "Checking $REDIS_CHECK_RDB OK."
-else
-    echo -e "$REDIS_CHECK_RDB \033[0;32;31mnot exists or not executable.\033[m"
     echo -e "Exit now.\n"
     exit 1
 fi
@@ -413,8 +352,8 @@ function install_common()
 
     # 上传公共执行文件（upload executable files）
     echo ""
-    echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb -d=$install_dir/bin"
-    $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -s=redis-server,redis-cli,redis-check-aof,redis-check-rdb,redis-trib.rb -d=$install_dir/bin
+    echo "$MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p=\"$install_user_password\" -s=redis-server,redis-cli -d=$install_dir/bin"
+    $MOOON_UPLOAD -h=$redis_ip -P=$ssh_port -u=$install_user -p="$install_user_password" -s=redis-server,redis-cli -d=$install_dir/bin
     if test $? -ne 0; then
         echo -e "Exit now.\n"
         exit 1
@@ -527,7 +466,7 @@ echo ""
 echo -e "\033[1;33m================================\033[m"
 while true
 do
-    echo -en "Start redis? [\033[1;33myes\033[m/\033[1;33mno\033[m]"
+    echo -en "Start redis-server? [\033[1;33myes\033[m/\033[1;33mno\033[m]"
     read -r -p " " input
 
     if test "$input" = "no"; then
@@ -540,7 +479,7 @@ do
     fi
 done
 
-# 启动redis实例（start redis instance）
+# 启动 redis-server 实例（start redis-server process）
 for redis_node in ${redis_node_array[@]};
 do
     eval $(echo "$redis_node" | awk -F[\ \:,\;\t]+ '{ printf("node_ip=%s\nnode_port=%s\n",$1,$2); }')
@@ -579,7 +518,7 @@ else
         fi
     done
 
-    # 创建redis集群（create redis cluster）
+    # 创建 redis 集群（create redis cluster by redis-cli）
     if test $redis_cli_ver -lt 5; then
         # redis-trib.rb create --replicas 1
         echo "$REDIS_TRIB create --replicas 1 $redis_nodes_str"
