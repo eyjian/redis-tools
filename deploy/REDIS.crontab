@@ -5,15 +5,18 @@
 # REDIS_HOME 指定 redis 的安装目录，REDIS_PORT 指定 redis 的服务端口
 # REDIS_LOG_SIZE 用于指定 redis 日志文件大小，
 # 注意 redis 并不自动滚动日志文件，也可通过 rsyslogd 实现日志文件滚动。
+#
+# 可从 https://github.com/eyjian/libmooon/blob/master/shell/process_monitor.sh 下载最新的 process_monitor.sh。
+PMONITOR=/usr/local/bin/process_monitor.sh
 REDIS_HOME=/usr/local/redis
 REDIS_LOG_SIZE=1073741824
 REDIS_PORT6379=6379
 REDIS_PORT6380=6380
 
 # REDIS_PORT6379
-* * * * * /usr/local/bin/process_monitor.sh "$REDIS_HOME/bin/redis-server $REDIS_PORT6379" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$REDIS_PORT6379.conf"
+* * * * * $PMONITOR "$REDIS_HOME/bin/redis-server 0.0.0.0:$REDIS_PORT6379" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$REDIS_PORT6379.conf"
 0 * * * * log=$REDIS_HOME/log/redis-$REDIS_PORT6379.log;if test -f $log; then if test `ls -l $log|cut -d' ' -f5` -gt $REDIS_LOG_SIZE; then mv $log $log.old ; fi fi
 
 # REDIS_PORT6380
-* * * * * /usr/local/bin/process_monitor.sh "$REDIS_HOME/bin/redis-server $REDIS_PORT6380" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$REDIS_PORT6380.conf"
+* * * * * $PMONITOR "$REDIS_HOME/bin/redis-server 0.0.0.0:$REDIS_PORT6380" "$REDIS_HOME/bin/redis-server $REDIS_HOME/conf/redis-$REDIS_PORT6380.conf"
 0 * * * * log=$REDIS_HOME/log/redis-$REDIS_PORT6380.log;if test -f $log; then if test `ls -l $log|cut -d' ' -f5` -gt $REDIS_LOG_SIZE; then mv $log $log.old ; fi fi
