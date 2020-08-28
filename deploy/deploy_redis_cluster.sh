@@ -519,14 +519,8 @@ else
     done
 
     # 创建 redis 集群（create redis cluster by redis-cli）
-    if test $redis_cli_ver -lt 5; then
-        # redis-trib.rb create --replicas 1
-        echo "$REDIS_TRIB create --replicas 1 $redis_nodes_str"
-        $REDIS_TRIB create --replicas 1 $redis_nodes_str
-    else
-        echo "$REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1"
-        $REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1
-    fi
+    echo "$REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1"
+    $REDIS_CLI --cluster create $redis_nodes_str --cluster-replicas 1
     echo -e "Exit now.\n"
     exit 0
 fi
