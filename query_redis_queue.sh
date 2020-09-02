@@ -55,7 +55,7 @@ fi
 
 # 检查是否设置了环境变量 REDIS_QUEUES
 if test -z "$REDIS_QUEUES"; then
-  echo "Shell variable \`REDIS_QUEUES\` is not set or is empty."
+  echo "Environment variable \`REDIS_QUEUES\` is not set or is empty."
   exit 1
 fi
 # 字符串值转成数组值
