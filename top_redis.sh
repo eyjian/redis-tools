@@ -39,14 +39,18 @@ fi
 # 取得 redis-server 进程ID
 # 命令 ps 输出的时间格式有两种：“7月17”和“20:42”，所以端口所在字段有区别：
 pid=`ps -f -C redis-server | awk -v port=$REDIS_PORT -F'[ :]*' '{ if ($12==port || $13==port) print $2 }'`
+if test -z "$pid"; then
+  echo "Can not get PID of redis-server:$REDIS_PORT"
+  exit 1
+fi
 
 # 执行 top 之前需要设置好环境变量“TERM”，否则执行将报如下错：
 # TERM environment variable not set.
 export TERM=xterm
 
-# 各列
-echo "PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND"
-
 # 后台方式执行命令 top 时，
 # 需要加上参数“-b”（非交互模式），不然报错“top: failed tty get”
-$TOP -b -p $pid -n 1 | grep redis-serv+
+#$TOP -b -p $pid -n 1 | grep redis-serv+
+eval $($TOP -b -p $pid -n 1 | awk '{ if (match($12,"redis-serv+")) printf("PID=%s\nUSER=%s\nPR=%s\nNI=%s\nVIRT=%s\nRES=%s\nSHR=%s\nS=%s\nCPU=%s\nMEM=%s\n",$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12); }')
+# PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+echo -e "PID:\033[1;33m$PID\033[m USER:$USER PR:$PR NI:$NI VIRT:\033[1;33m$VIRT\033[m RES:\033[1;33m$RES\033[m SHR:$SHR S:$S %CPU:\033[1;33m$CPU\033[m %MEM:\033[1;33m$MEM\033[m"
