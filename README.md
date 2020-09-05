@@ -30,3 +30,7 @@
 * **stop_redis.sh**
 
   用于停指定端口号 redis-server 进程工具
+
+* **top_redis.sh**
+
+  查看指定端口号 redis-server 进程的 top 命令信息，支持 mooon_ssh 远程批量执行
