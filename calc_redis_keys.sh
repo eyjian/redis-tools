@@ -40,7 +40,7 @@ fi
 
 # 根据 keys 的数量计算出 slots 的分布
 NUM_SLOTS=16384
-STEP=$(($NUM_SLOTS / $NUM_KEYS + $NUM_SLOTS % $NUM_KEYS))
+STEP=$(($NUM_SLOTS / $NUM_KEYS))
 declare -A slots_table # 存储 slots 分布表
 for ((slot=0;slot<$NUM_SLOTS;slot+=$STEP))
 do
