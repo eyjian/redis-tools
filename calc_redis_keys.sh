@@ -42,8 +42,9 @@ fi
 NUM_SLOTS=16384
 STEP=$(($NUM_SLOTS / $NUM_KEYS))
 declare -A slots_table # 存储 slots 分布表
-for ((slot=0;slot<$NUM_SLOTS;slot+=$STEP))
+for ((i=0;i<$NUM_SLOTS;i+=$STEP))
 do
+  slot=$(($i+99)) # 加 99 大体上跳过相邻边界值
   slots_table[$slot]="2021"
   if test ${#slots_table[@]} -eq $NUM_KEYS; then
     break
